@@ -15,4 +15,6 @@ const sequelize = new Sequelize(
   }
 );
 
-export { sequelize };
+import User from "./user.js";
+
+export { sequelize, User };
