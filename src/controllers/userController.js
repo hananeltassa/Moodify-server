@@ -1,6 +1,7 @@
 import db from "../models/index.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import admin from "../config/firebase.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -86,6 +87,58 @@ export const loginUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Error logging in:", error.message);
+    res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+export const googleLogin = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ error: "Google ID token is required." });
+    }
+
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    const { uid, email, name, picture } = decodedToken;
+
+    let user = await db.User.findOne({ where: { email } });
+
+    if (!user) {
+      user = await db.User.create({
+        name,
+        email,
+        google_id: uid,
+        profile_picture: picture,
+        password: null, 
+        role: "user", 
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(200).json({
+      message: "Login successful.",
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profile_picture: user.profile_picture,
+      },
+    });
+  } catch (error) {
+    console.error("Error during Google login:", error.message);
     res.status(500).json({ error: "Internal server error." });
   }
 };
