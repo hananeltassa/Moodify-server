@@ -48,6 +48,13 @@ export default (sequelize, DataTypes) => {
           isEmail: true,
         },
       },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
+      },
       google_id: {
         type: DataTypes.STRING,
         unique: true,
