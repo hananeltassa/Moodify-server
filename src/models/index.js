@@ -1,7 +1,5 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
-
-// Import all models
 import User from "./user.js";
 import SpotifyUserData from "./spotifyUserData.js";
 import MoodDetectionInput from "./moodDetectionInput.js";

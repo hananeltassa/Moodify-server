@@ -47,6 +47,7 @@ export default (sequelize, DataTypes) => {
       modelName: 'MoodDetectionInput',
       tableName: 'MoodDetectionInputs',
       timestamps: true, 
+      underscored: true, 
     }
   );
 

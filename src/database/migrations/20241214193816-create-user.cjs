@@ -40,19 +40,19 @@ module.exports = {
         allowNull: true,
       },
       role: {
-        type: Sequelize.ENUM("normal", "admin"),
+        type: Sequelize.ENUM("user", "admin"),
         allowNull: false,
-        defaultValue: "normal",
+        defaultValue: "user",
       },
-      createdAt: {
+      created_at: { 
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
+        defaultValue: Sequelize.fn("NOW"),
       },
-      updatedAt: {
+      updated_at: { 
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
+        defaultValue: Sequelize.fn("NOW"),
       },
     });
   },
