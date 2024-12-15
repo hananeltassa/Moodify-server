@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Challenges', {
@@ -10,26 +11,26 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER,
-        allowNull: false, 
+        allowNull: false,
         references: {
-          model: 'Users', 
+          model: 'Users',
           key: 'id',
         },
-        onDelete: 'CASCADE', 
+        onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
       text: {
         type: Sequelize.TEXT,
-        allowNull: false, 
+        allowNull: false,
       },
       type: {
-        type: Sequelize.STRING,
-        allowNull: false, 
+        type: Sequelize.STRING(50),
+        allowNull: false,
       },
       status: {
-        type: Sequelize.ENUM('pending', 'completed', 'rejected'), 
+        type: Sequelize.ENUM('pending', 'completed', 'rejected'),
         allowNull: false,
-        defaultValue: 'pending', 
+        defaultValue: 'pending',
       },
       completed_at: {
         type: Sequelize.DATE,
@@ -38,12 +39,12 @@ module.exports = {
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW'), 
+        defaultValue: Sequelize.fn('NOW'),
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW'), 
+        defaultValue: Sequelize.fn('NOW'),
       },
     });
   },

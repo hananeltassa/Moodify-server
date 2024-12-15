@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('AIChallenges', {
@@ -10,13 +11,13 @@ module.exports = {
       },
       challenge_id: {
         type: Sequelize.INTEGER,
-        allowNull: false, 
+        allowNull: false,
         references: {
-          model: 'Challenges', 
-          key: 'id', 
+          model: 'Challenges',
+          key: 'id',
         },
         onDelete: 'CASCADE',
-        onUpdate: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       environment: {
         type: Sequelize.JSONB,

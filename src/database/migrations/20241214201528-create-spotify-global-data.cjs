@@ -10,7 +10,7 @@ module.exports = {
         allowNull: false,
       },
       type: {
-        type: Sequelize.ENUM('artist', 'track', 'album'), 
+        type: Sequelize.ENUM('artist', 'track', 'album'),
         allowNull: false,
       },
       spotify_id: {
@@ -23,7 +23,7 @@ module.exports = {
         allowNull: false,
       },
       metadata: {
-        type: Sequelize.JSONB, 
+        type: Sequelize.JSONB,
         allowNull: false,
       },
       createdAt: {

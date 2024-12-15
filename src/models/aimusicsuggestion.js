@@ -23,29 +23,32 @@ export default (sequelize, DataTypes) => {
       mood: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       suggestion_type: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       suggestion_details: {
         type: DataTypes.JSONB,
-        allowNull: false,
+        allowNull: true,
       },
       environment_factors: {
         type: DataTypes.JSONB,
         allowNull: true,
-      },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
       },
     },
     {
       sequelize,
       modelName: 'AIMusicSuggestion',
       tableName: 'AIMusicSuggestions',
-      timestamps: false, 
+      timestamps: true, 
+      underscored: true, 
     }
   );
 

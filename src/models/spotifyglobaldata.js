@@ -3,13 +3,8 @@ import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class SpotifyGlobalData extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // Define associations here if needed in the future
+      // Future associations can be defined here
     }
   }
 
@@ -21,28 +16,34 @@ export default (sequelize, DataTypes) => {
         autoIncrement: true,
       },
       type: {
-        type: DataTypes.ENUM('artist', 'track', 'album'), 
+        type: DataTypes.ENUM('artist', 'track', 'album'),
         allowNull: false,
       },
       spotify_id: {
         type: DataTypes.STRING(255),
         unique: true,
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       name: {
         type: DataTypes.STRING(255),
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       metadata: {
-        type: DataTypes.JSONB, 
+        type: DataTypes.JSONB,
         allowNull: false,
       },
     },
     {
       sequelize,
       modelName: 'SpotifyGlobalData',
-      tableName: 'SpotifyGlobalData', 
-      timestamps: true, 
+      tableName: 'SpotifyGlobalData',
+      timestamps: true,
     }
   );
 

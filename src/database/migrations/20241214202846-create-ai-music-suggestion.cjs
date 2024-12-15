@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('AIMusicSuggestions', {
@@ -12,37 +13,37 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Users', 
-          key: 'id', 
+          model: 'Users',
+          key: 'id',
         },
-        onDelete: 'CASCADE', 
+        onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
       mood: {
-        type: Sequelize.STRING,
-        allowNull: false, 
+        type: Sequelize.STRING(50),
+        allowNull: false,
       },
       suggestion_type: {
-        type: Sequelize.STRING,
-        allowNull: false, 
+        type: Sequelize.STRING(50),
+        allowNull: false,
       },
       suggestion_details: {
         type: Sequelize.JSONB,
-        allowNull: true, 
+        allowNull: true,
       },
       environment_factors: {
         type: Sequelize.JSONB,
-        allowNull: true, 
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW'), 
+        defaultValue: Sequelize.fn('NOW'),
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW'), 
+        defaultValue: Sequelize.fn('NOW'),
       },
     });
   },

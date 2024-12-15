@@ -46,30 +46,24 @@ export default (sequelize, DataTypes) => {
         unique: true,
         validate: {
           isEmail: true,
-          notEmpty: true,
         },
       },
       google_id: {
         type: DataTypes.STRING,
         unique: true,
-        allowNull: true,
       },
       spotify_id: {
         type: DataTypes.STRING,
         unique: true,
-        allowNull: true,
       },
       access_token: {
         type: DataTypes.TEXT,
-        allowNull: true,
       },
       refresh_token: {
         type: DataTypes.TEXT,
-        allowNull: true,
       },
       profile_picture: {
         type: DataTypes.STRING,
-        allowNull: true,
         validate: {
           isUrl: true,
         },
@@ -88,8 +82,6 @@ export default (sequelize, DataTypes) => {
       underscored: true,
     }
   );
-
-  console.log(User === sequelize.models.User);
 
   return User;
 };

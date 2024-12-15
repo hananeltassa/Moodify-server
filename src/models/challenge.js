@@ -1,7 +1,7 @@
 'use strict';
-const { Model } = require('sequelize');
+import { Model } from 'sequelize';
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   class Challenge extends Model {
     static associate(models) {
       Challenge.belongsTo(models.User, {
@@ -31,21 +31,19 @@ module.exports = (sequelize, DataTypes) => {
       status: {
         type: DataTypes.ENUM('pending', 'completed', 'rejected'),
         allowNull: false,
+        defaultValue: 'pending',
       },
       completed_at: {
         type: DataTypes.DATE,
         allowNull: true,
-      },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
       },
     },
     {
       sequelize,
       modelName: 'Challenge',
       tableName: 'Challenges',
-      timestamps: false,
+      timestamps: true, 
+      underscored: true, 
     }
   );
 

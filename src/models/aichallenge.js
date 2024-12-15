@@ -29,9 +29,8 @@ export default (sequelize, DataTypes) => {
       sequelize,
       modelName: 'AIChallenge',
       tableName: 'AIChallenges',
-      timestamps: true,
-      createdAt: 'created_at', // Map Sequelize's `createdAt` to `created_at`
-      updatedAt: false, 
+      timestamps: true, 
+      underscored: true, 
     }
   );
 

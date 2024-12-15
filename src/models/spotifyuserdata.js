@@ -43,6 +43,7 @@ export default (sequelize, DataTypes) => {
       modelName: 'SpotifyUserData',
       tableName: 'SpotifyUserData',
       timestamps: true,
+      underscored: true, 
     }
   );
 

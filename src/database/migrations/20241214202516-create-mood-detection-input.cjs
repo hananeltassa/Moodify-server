@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('MoodDetectionInputs', {
@@ -6,7 +7,7 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       user_id: {
         type: Sequelize.INTEGER,
@@ -19,28 +20,31 @@ module.exports = {
         onUpdate: 'CASCADE',
       },
       input_type: {
-        type: Sequelize.STRING
-      },
+        type: Sequelize.ENUM('voice', 'face', 'text'), 
+        allowNull: false,
+      },    
       input_data: {
-        type: Sequelize.TEXT
+        type: Sequelize.TEXT,
+        allowNull: true,
       },
       detected_mood: {
-        type: Sequelize.STRING
-      },
-      timestamp: {
-        type: Sequelize.DATE
+        type: Sequelize.STRING(50), 
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
+      },
     });
   },
+
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('MoodDetectionInputs');
-  }
+  },
 };

@@ -20,14 +20,25 @@ module.exports = {
       google_id: {
         type: Sequelize.STRING,
         unique: true,
+        allowNull: true,
       },
       spotify_id: {
         type: Sequelize.STRING,
         unique: true,
+        allowNull: true,
       },
-      access_token: Sequelize.TEXT,
-      refresh_token: Sequelize.TEXT,
-      profile_picture: Sequelize.STRING,
+      access_token: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      refresh_token: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      profile_picture: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       role: {
         type: Sequelize.ENUM("normal", "admin"),
         allowNull: false,
@@ -36,10 +47,12 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
     });
   },
