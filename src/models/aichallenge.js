@@ -1,7 +1,7 @@
 'use strict';
-const { Model } = require('sequelize');
+import { Model } from 'sequelize';
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   class AIChallenge extends Model {
     static associate(models) {
       AIChallenge.belongsTo(models.Challenge, {
@@ -24,16 +24,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: false,
       },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
       sequelize,
       modelName: 'AIChallenge',
       tableName: 'AIChallenges',
-      timestamps: false,
+      timestamps: true,
+      createdAt: 'created_at', // Map Sequelize's `createdAt` to `created_at`
+      updatedAt: false, 
     }
   );
 

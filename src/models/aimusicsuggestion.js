@@ -1,7 +1,7 @@
 'use strict';
-const { Model } = require('sequelize');
+import { Model } from 'sequelize';
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   class AIMusicSuggestion extends Model {
     static associate(models) {
       AIMusicSuggestion.belongsTo(models.User, {
@@ -45,7 +45,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: 'AIMusicSuggestion',
       tableName: 'AIMusicSuggestions',
-      timestamps: false,
+      timestamps: false, 
     }
   );
 

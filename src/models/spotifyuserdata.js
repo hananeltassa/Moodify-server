@@ -1,20 +1,14 @@
 'use strict';
-const { Model } = require('sequelize');
+import { Model } from 'sequelize';
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   class SpotifyUserData extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // Define the relationship with the Users table
       SpotifyUserData.belongsTo(models.User, {
-        foreignKey: 'user_id', 
+        foreignKey: 'user_id',
         as: 'user',
-        onDelete: 'CASCADE', 
-        onUpdate: 'CASCADE', 
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       });
     }
   }
@@ -26,10 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         references: {
           model: 'Users', 
-          key: 'id', 
+          key: 'id',
         },
-        onDelete: 'CASCADE', 
-        onUpdate: 'CASCADE', 
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       },
       liked_songs: {
         type: DataTypes.JSONB,
@@ -47,8 +41,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'SpotifyUserData',
-      tableName: 'SpotifyUserData', // Explicitly set the table name
-      timestamps: true, // Enable createdAt and updatedAt fields
+      tableName: 'SpotifyUserData',
+      timestamps: true,
     }
   );
 

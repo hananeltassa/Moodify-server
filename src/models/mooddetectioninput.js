@@ -1,7 +1,7 @@
 'use strict';
-const { Model } = require('sequelize');
+import { Model } from 'sequelize';
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   class MoodDetectionInput extends Model {
     static associate(models) {
       MoodDetectionInput.belongsTo(models.User, {
@@ -26,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       input_data: {
         type: DataTypes.TEXT,
+        allowNull: true,
       },
       detected_mood: {
         type: DataTypes.STRING(50),
