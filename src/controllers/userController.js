@@ -142,3 +142,51 @@ export const googleLogin = async (req, res) => {
     res.status(500).json({ error: "Internal server error." });
   }
 };
+
+
+export const getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; 
+
+    const user = await db.User.findByPk(userId, {
+      attributes: { exclude: ["password"] }, 
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error fetching profile:", error.message);
+    res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; 
+    const { name, gender, profile_picture } = req.body;
+
+    if (!name && !gender && !profile_picture) {
+      return res.status(400).json({ error: "At least one field must be provided for update." });
+    }
+
+    const user = await db.User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    if (name) user.name = name;
+    if (gender) user.gender = gender;
+    if (profile_picture) user.profile_picture = profile_picture;
+
+    await user.save();
+
+    res.status(200).json({ message: "Profile updated successfully.", user });
+  } catch (error) {
+    console.error("Error updating profile:", error.message);
+    res.status(500).json({ error: "Internal server error." });
+  }
+};
