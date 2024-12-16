@@ -4,6 +4,7 @@ import connectDB from "./database/connection.js";
 import { init } from "./config/init.js";
 
 import userRoutes from "./routes/userRoutes.js";
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ init(app);
 app.use(express.json()); 
 
 app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 const startServer = async () => {
     try {

@@ -80,6 +80,11 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 'user',
       },
+      is_banned: { 
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       sequelize,
