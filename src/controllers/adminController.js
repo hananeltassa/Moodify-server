@@ -1,4 +1,3 @@
-import challenge from "../models/challenge.js";
 import db from "../models/index.js";
 import { Parser } from "json2csv";
 

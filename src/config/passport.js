@@ -23,6 +23,7 @@ passport.use(
           expires_in,
         };
         
+        //console.log("Generated User Object:", user);
         return done(null, user);
       } catch (error) {
         return done(error, null);
