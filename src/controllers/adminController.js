@@ -1,5 +1,6 @@
 import challenge from "../models/challenge.js";
 import db from "../models/index.js";
+import { Parser } from "json2csv";
 
 
 export const getAllUsers = async (req, res) => {
@@ -47,8 +48,7 @@ export const deleteUser = async (req, res) => {
       console.error(error);
       res.status(500).json({ error: "Error deleting user" });
     }
-  };
-  
+};
 
 export const updateUserRole = async (req, res) => {
     try {
@@ -140,3 +140,37 @@ export const getSystemAnalytics = async (req, res) => {
     res.status(500).json({ error: "Error retrieving system analytics." });
   }
 };
+
+export const exportUsers = async (req, res) => {
+  try{
+    const { format = "csv"} = req.query;
+
+    const users = await db.User.findAll({
+      attributes: {exclude: ["password"] },
+      raw: true,
+    });
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found to export." });
+    }
+
+    if (format === "csv") {
+      const fields = Object.keys(users[0]); // Extract column headers
+      const json2csvParser = new Parser({ fields });
+      const csv = json2csvParser.parse(users);
+
+      res.header("Content-Type", "text/csv");
+      res.attachment("users.csv");
+      return res.send(csv);
+    }
+
+    // Default: Export as JSON
+    res.header("Content-Type", "application/json");
+    return res.status(200).json({ users });
+
+  } catch(error){
+    console.error("Error exporting user data:", error.message);
+    return res.status(500).json({ error: "Error exporting user data." });
+  }
+};
+
