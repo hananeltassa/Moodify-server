@@ -1,3 +1,4 @@
+import challenge from "../models/challenge.js";
 import db from "../models/index.js";
 
 
@@ -104,4 +105,38 @@ export const getBannedUsers = async (req, res) => {
       res.status(500).json({ error: "Error fetching banned users" });
     }
 };
-  
+
+export const getSystemAnalytics = async (req, res) => {
+  try{
+    const totalUsers = await db.User.count();
+    const bannedUsers = await db.User.count({ where: { is_banned: true }});
+    const spotifyUsers = await db.User.count({ where : {spotify_id: { [db.Sequelize.Op.ne]: null }}});
+    
+    //console.log("Loaded Models:", Object.keys(db));
+
+    const totalMoodDetections = await db.MoodDetectionInput.count();
+
+    const totalChallenges = await db.Challenge.count();
+    const completedChallenges = await db.Challenge.count({ where: {status: "completed"}});
+
+    const analytics = {
+      users: {
+        total : totalUsers,
+        banned: bannedUsers,
+        spotify_connected: spotifyUsers,
+      },
+      mood_detections:{
+        total: totalMoodDetections,
+      },
+      challenges:{
+        total: totalChallenges,
+        completed: completedChallenges,
+      },
+    };
+
+    res.status(200).json({ analytics});                                             
+  } catch (error){
+    console.error("Error fetching system analytics:", error.message);
+    res.status(500).json({ error: "Error retrieving system analytics." });
+  }
+};
