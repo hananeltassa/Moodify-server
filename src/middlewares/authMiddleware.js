@@ -4,6 +4,9 @@ dotenv.config();
 
 export const authenticate = (req, res, next) => {
   try {
+    // Debug incoming Authorization header
+    //console.log("Authorization Header:", req.headers.authorization);
+
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
@@ -11,6 +14,8 @@ export const authenticate = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    //console.log("Decoded JWT Payload:", decoded);
+
     req.user = decoded; 
     next();
   } catch (error) {

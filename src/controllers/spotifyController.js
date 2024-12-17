@@ -1,3 +1,4 @@
+import axios from "axios";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
@@ -66,7 +67,36 @@ export const spotifyCallback = (req, res, next) => {
 
 const generateJWT = (user) =>
   jwt.sign(
-    { spotifyId: user.spotifyId, email: user.email, id: user._id },
+    { spotifyId: user.spotify_id, email: user.email, id: user.id },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
-);
+  );
+
+export const getSpotifyPlaylists = async (req, res) => {
+  try {
+    const { id: userId } = req.user;
+
+    const user = await db.User.findByPk(userId);
+
+    if (!user?.access_token) {
+      return res.status(401).json({ message: "Unauthorized: Spotify access token not found" });
+    }
+
+    const { data } = await axios.get("https://api.spotify.com/v1/me/playlists", {
+      headers: { Authorization: `Bearer ${user.access_token}` },
+    });
+
+    return res.status(200).json({
+      message: "Playlists fetched successfully!",
+      playlists: data.items,
+    });
+  } catch (error) {
+    console.error("Error fetching Spotify playlists:", error.message);
+    
+    if (error.response?.status === 401) {
+      return res.status(401).json({ message: "Spotify access token expired. Please log in again." });
+    }
+
+    return res.status(500).json({ message: "Failed to fetch playlists" });
+  }
+};
