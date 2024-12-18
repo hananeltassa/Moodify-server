@@ -3,6 +3,13 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
 
+const generateJWT = (user) =>
+  jwt.sign(
+    { spotifyId: user.spotify_id, email: user.email, id: user.id },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+);
+
 export const spotifySignin = passport.authenticate("spotify", {
   scope: ["user-read-email", "user-read-private","user-library-read", "user-read-playback-state"],
 });
@@ -63,13 +70,6 @@ export const spotifyCallback = (req, res, next) => {
     }
   })(req, res, next);
 };
-
-const generateJWT = (user) =>
-  jwt.sign(
-    { spotifyId: user.spotify_id, email: user.email, id: user.id },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
 
 export const getSpotifyPlaylistsUser = async (req, res) => {
   try {
@@ -278,5 +278,101 @@ export const getAlbumTracks = async (req, res) => {
       return res.status(401).json({ message: "Spotify access token expired. Please log in again." });
     }
     return res.status(500).json({ message: "Failed to fetch album tracks" });
+  }
+};
+
+export const searchSpotify = async (req, res) => {
+  try{
+    const { query, type} = req.query;
+    
+    if (!query) {
+      return res.status(400).json({ message: "Query are required." });
+    }
+    const searchType = type || "track,album,artist,playlist";
+
+    const { id: userId } = req.user;
+
+    const user = await db.User.findByPk(userId);
+
+    if (!user?.access_token) {
+      return res.status(401).json({ message: "Unauthorized: Spotify access token not found" });
+    }
+
+    const { data } = await axios.get("https://api.spotify.com/v1/search", {
+      headers: { Authorization: `Bearer ${user.access_token}` },
+      params: {
+        q: query,
+        type: searchType,
+        limit: 10, 
+      },
+    });
+
+    const results = {};
+
+    if (data.artists) {
+      const limitedArtists = data.artists.items.slice(0, 1);
+      results.artists = limitedArtists.map((item) => ({
+        name: item.name,
+        genres: item.genres || [],
+        followers: item.followers?.total || 0,
+        externalUrl: item.external_urls.spotify,
+      }));
+      // results.artists = data.artists.items
+      //   .filter((item) => item && item.name) 
+      //   .map((item) => ({
+      //     name: item.name,
+      //     genres: item.genres || [],
+      //     followers: item.followers?.total || 0,
+      //     externalUrl: item.external_urls?.spotify || null,
+      //   }));
+    }
+
+    if (data.tracks) {
+      results.tracks = data.tracks.items
+        .filter((item) => item && item.name) 
+        .map((item) => ({
+          name: item.name,
+          artists: item.artists?.map((artist) => artist.name) || ["Unknown Artist"],
+          album: item.album?.name || "Unknown Album",
+          externalUrl: item.external_urls?.spotify || null,
+        }));
+    }
+
+    if (data.albums) {
+      results.albums = data.albums.items
+        .filter((item) => item && item.name)
+        .map((item) => ({
+          name: item.name,
+          artists: item.artists?.map((artist) => artist.name) || ["Unknown Artist"],
+          totalTracks: item.total_tracks || 0,
+          releaseDate: item.release_date || "Unknown Date",
+          externalUrl: item.external_urls?.spotify || null,
+        }));
+    }
+
+    if (data.playlists) {
+      results.playlists = data.playlists.items
+        .filter((item) => item && item.name) 
+        .map((item) => ({
+          name: item.name,
+          owner: item.owner?.display_name || "Unknown Owner",
+          totalTracks: item.tracks?.total || 0,
+          externalUrl: item.external_urls?.spotify || null,
+        }));
+    }
+
+    return res.json({
+      message: "Search results fetched successfully!",
+      results,
+    });
+
+  } catch(error){
+    console.error("Error performing search:", error.message);
+
+    if (error.response?.status === 401) {
+      return res.status(401).json({ message: "Spotify access token expired. Please log in again." });
+    }
+
+    return res.status(500).json({ message: "Failed to perform search" });
   }
 };
