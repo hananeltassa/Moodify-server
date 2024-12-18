@@ -64,7 +64,6 @@ export const spotifyCallback = (req, res, next) => {
   })(req, res, next);
 };
 
-
 const generateJWT = (user) =>
   jwt.sign(
     { spotifyId: user.spotify_id, email: user.email, id: user.id },
@@ -145,6 +144,7 @@ export const getPlaylistTracks = async (req, res) => {
 
     return res.json({
       message: "Tracks fetched successfully!",
+      total_tracks: data.total,
       tracks,
       //tracks: data.items,
     });
@@ -186,9 +186,9 @@ export const getUserLikedTracks = async (req, res) => {
 
     return res.json({
       message: "Liked tracks fetched successfully!",
-      //tracks,
+      tracks,
       total_tracks: data.total,
-      tracks: data.items,
+      //tracks: data.items,
     });
 
   } catch (error){
@@ -196,6 +196,46 @@ export const getUserLikedTracks = async (req, res) => {
 
     if (error.response?.status === 401){
       return res.status(401).json({ message: "Failed to fetch liked tracks"});
+    }
+  }
+};
+
+export const getUserSavedAlbums = async (req, res) => {
+  try{
+    const { id : userId } = req.user;
+    const user = await db.User.findByPk(userId);
+
+    if (!user?.access_token){
+      return res.status(401).json({ message: "Unauthorized: Spotify access token not found "});
+    }
+
+    const {data} = await axios.get(`https://api.spotify.com/v1/me/albums`,{
+      headers: { Authorization : `Bearer ${user.access_token}`}
+    });
+
+    const albums = data.items.map((item) => ({
+      id: item.album.id,
+      name : item.album.name,
+      release_date: item.album.release_date,
+      artists: item.album.artists.map((artist) => artist.name),
+      releaseDate: item.album.release_date,
+      totalTracks: item.album.total_tracks,
+      images: item.album.images, 
+      externalUrl: item.album.external_urls.spotify,
+    }))
+
+    return res.json({
+      message: "Saved albums fetched successfully!",
+      total_albums: data.total,
+      albums,
+      //albums: data.items,
+    });
+
+  } catch (error){
+    console.error("Error fetching saved Albums:", error.message);
+
+    if (error.response?.status === 401){
+      return res.status(401).json({ message: "Failed to fetch saved Albums"});
     }
   }
 };
