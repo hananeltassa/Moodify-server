@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticate } from '../middlewares/authMiddleware.js';
-import { spotifySignin, spotifyCallback, getSpotifyPlaylistsUser, getPlaylistTracks, getUserLikedTracks, getUserSavedAlbums } from "../controllers/spotifyController.js";
+import { spotifySignin, spotifyCallback, getSpotifyPlaylistsUser, getPlaylistTracks, getUserLikedTracks, getUserSavedAlbums, getAlbumTracks } from "../controllers/spotifyController.js";
 
 const router = express.Router();
 
@@ -12,5 +12,5 @@ router.get("/spotify/playlists/:playlistId/tracks", authenticate , getPlaylistTr
 
 router.get("/spotify/liked-tracks", authenticate , getUserLikedTracks);
 router.get("/spotify/saved-albums", authenticate , getUserSavedAlbums);
-
+router.get("/spotify/albums/:albumId/tracks", authenticate , getAlbumTracks);
 export default router;

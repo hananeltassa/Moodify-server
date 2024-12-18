@@ -239,3 +239,44 @@ export const getUserSavedAlbums = async (req, res) => {
     }
   }
 };
+
+export const getAlbumTracks = async (req, res) => {
+  try {
+    const { albumId } = req.params;
+
+    const { id: userId } = req.user;
+
+    const user = await db.User.findByPk(userId);
+
+    if (!user?.access_token) {
+      return res.status(401).json({ message: "Unauthorized: Spotify access token not found" });
+    }
+
+    const { data } = await axios.get(`https://api.spotify.com/v1/albums/${albumId}/tracks`, {
+      headers: { Authorization: `Bearer ${user.access_token}` },
+    });
+
+    const albumTracks = data.items.map((track) => ({
+      name: track.name,
+      artists: track.artists.map((artist) => artist.name),
+      duration_ms: track.duration_ms, 
+      trackNumber: track.track_number, 
+      externalUrl: track.external_urls.spotify, 
+    }));
+
+
+    return res.json({
+      message: "Album tracks fetched successfully!",
+      total: data.total,
+      //tracks: data.items,
+      tracks: albumTracks,
+    });
+  } catch (error) {
+    console.error("Error fetching album tracks:", error.message);
+
+    if (error.response?.status === 401) {
+      return res.status(401).json({ message: "Spotify access token expired. Please log in again." });
+    }
+    return res.status(500).json({ message: "Failed to fetch album tracks" });
+  }
+};
