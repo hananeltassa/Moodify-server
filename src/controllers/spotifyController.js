@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import db from "../models/index.js";
 
 export const spotifySignin = passport.authenticate("spotify", {
-  scope: ["user-read-email", "user-read-private", "user-read-playback-state"],
+  scope: ["user-read-email", "user-read-private","user-library-read", "user-read-playback-state"],
 });
 
 export const spotifyCallback = (req, res, next) => {
@@ -102,6 +102,7 @@ export const getSpotifyPlaylistsUser = async (req, res) => {
     return res.status(200).json({
       message: "Playlists fetched successfully!",
       playlists,
+      //playlists:data.items,
     });
   } catch (error) {
     console.error("Error fetching Spotify playlists:", error.message);
@@ -155,5 +156,46 @@ export const getPlaylistTracks = async (req, res) => {
     }
 
     return res.status(500).json({ message: "Failed to fetch tracks" });
+  }
+};
+
+export const getUserLikedTracks = async (req, res) => {
+  try {
+    const {id: userId} = req.user;
+
+    const user = await db.User.findByPk(userId);
+
+    if (!user?.access_token){
+      return res.status(401).json({ message: "Unauthorized: Spotify access token not found "});
+    }
+
+    const { data } = await axios.get(`https://api.spotify.com/v1/me/tracks`,{
+      headers: { Authorization: `Bearer ${user.access_token}` },
+    });
+
+    const tracks = data.items.map((item) => ({
+      name: item.track.name,
+      artist: item.track.artists.map((artist) => artist.name),
+      album: {
+        name: item.track.album.name,
+        images: item.track.album.images,
+      },
+      duration_ms: item.track.duration_ms,
+      externalUrl: item.track.external_urls.spotify,
+    }));
+
+    return res.json({
+      message: "Liked tracks fetched successfully!",
+      //tracks,
+      total_tracks: data.total,
+      tracks: data.items,
+    });
+
+  } catch (error){
+    console.error("Error fetching liked tracks:", error.message);
+
+    if (error.response?.status === 401){
+      return res.status(401).json({ message: "Failed to fetch liked tracks"});
+    }
   }
 };
