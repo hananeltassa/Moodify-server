@@ -3,7 +3,7 @@ import { authenticate } from '../middlewares/authMiddleware.js';
 import { spotifyAuthMiddleware } from "../middlewares/authSpotify.js";
 import { spotifySignin, spotifyCallback, getSpotifyPlaylistsUser, getPlaylistTracks, getUserLikedTracks, 
     getUserSavedAlbums, getAlbumTracks,
-    searchSpotify,
+    searchSpotify, getMoodBasedPlaylists, 
     
 } from "../controllers/spotifyController.js";
 
@@ -20,6 +20,8 @@ router.get("/spotify/saved-albums", authenticate , spotifyAuthMiddleware, getUse
 router.get("/spotify/albums/:albumId/tracks", authenticate , spotifyAuthMiddleware, getAlbumTracks);
 
 router.get("/spotify/search", authenticate, spotifyAuthMiddleware, searchSpotify);
+
+router.get("/spotify/mood-playlists", authenticate, spotifyAuthMiddleware, getMoodBasedPlaylists);
 
 //router.get("/spotify/featured-playlists", authenticate, getFeaturedPlaylists);
 

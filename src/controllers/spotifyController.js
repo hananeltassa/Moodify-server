@@ -257,7 +257,7 @@ export const searchSpotify = async (req, res) => {
     const { query, type} = req.query;
     
     if (!query) {
-      return res.status(400).json({ message: "Query are required." });
+      return res.status(400).json({ message: "Query is required." });
     }
     const searchType = type || "track,album,artist,playlist";
 
@@ -341,3 +341,60 @@ export const searchSpotify = async (req, res) => {
     return res.status(500).json({ message: "Failed to perform search" });
   }
 };
+
+export const getMoodBasedPlaylists = async (req, res) => {
+  try {
+    const { spotifyToken } = req;
+    const { mood = "chill", limit = 10, offset = 0, market = "LB" } = req.query;
+
+    const moodMapping = {
+      happy: "party",
+      sad: "chill",
+      energetic: "workout",
+      relaxed: "relax",
+    };
+
+    const searchQuery = moodMapping[mood] || mood;
+    const randomTags = ["mood", "new", "popular"];
+    const dynamicQuery = `${searchQuery} ${randomTags[Math.floor(Math.random() * randomTags.length)]}`;
+
+    const { data } = await axios.get("https://api.spotify.com/v1/search", {
+      headers: {
+        Authorization: `Bearer ${spotifyToken}`,
+      },
+      params: {
+        q: dynamicQuery,
+        type: "playlist",
+        market,
+        limit: parseInt(limit, 10),
+        offset: parseInt(offset, 10),
+      },
+    });
+
+    const playlists = data.playlists.items
+      .filter((playlist) => playlist && playlist.name)
+      .map((playlist) => ({
+        name: playlist.name || "Untitled Playlist",
+        description: playlist.description || "No description available.",
+        externalUrl: playlist.external_urls?.spotify || null,
+        image: playlist.images?.[0]?.url || null,
+        owner: playlist.owner?.display_name || "Unknown",
+        totalTracks: playlist.tracks?.total || 0,
+      }));
+
+    res.json({
+      message: `Playlists for mood: ${mood} fetched successfully!`,
+      mood,
+      playlists,
+    });
+  } catch (error) {
+    console.error("Error fetching mood-based playlists:", error.response?.data || error.message);
+
+    if (error.response?.status === 401) {
+      return res.status(401).json({ message: "Spotify access token expired. Please log in again." });
+    }
+
+    return res.status(500).json({ message: "Failed to fetch mood-based playlists." });
+  }
+};
+
