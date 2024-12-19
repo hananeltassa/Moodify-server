@@ -10,6 +10,7 @@ export const spotifyAuthMiddleware = async (req, res, next) => {
         }
 
         req.spotifyToken = user.access_token;
+        req.userId = userId; 
         next();
     } catch (error) {
         console.error("Spotify Auth Middleware Error:", error.message);

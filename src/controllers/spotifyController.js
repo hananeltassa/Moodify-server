@@ -3,6 +3,7 @@ import passport from "passport";
 import db from "../models/index.js";
 import { handleApiError } from "../utils/handleApiError.js";
 import { generateJWT } from "../utils/generateJWT.js";
+import { isDataStale } from "../utils/isDataStale.js";
 
 export const spotifySignin = passport.authenticate("spotify", {
   scope: ["user-read-email", 
@@ -67,7 +68,19 @@ export const spotifyCallback = (req, res, next) => {
 
 export const getSpotifyPlaylistsUser = async (req, res) => {
   try {
-    const { spotifyToken } = req;
+    const { spotifyToken, userId } = req;
+
+    const userSpotifyData = await db.SpotifyUserData.findOne({
+      where: { user_id: userId },
+    });
+
+    if (userSpotifyData?.playlists && !isDataStale(userSpotifyData.updatedAt)) {
+      return res.status(200).json({
+        message: "Playlists fetched successfully from database!",
+        playlists: userSpotifyData.playlists,
+      });
+    }
+
     const { data } = await axios.get("https://api.spotify.com/v1/me/playlists", {
       headers: { Authorization: `Bearer ${spotifyToken}` },
     });
@@ -77,19 +90,29 @@ export const getSpotifyPlaylistsUser = async (req, res) => {
       name: playlist.name,
       description: playlist.description,
       images: playlist.images,
+      totalTracks: playlist.tracks.total,
       owner: {
         name: playlist.owner.display_name,
         url: playlist.owner.external_urls.spotify,
       },
-      totalTracks: playlist.tracks.total,
-      externalUrl: playlist.external_urls.spotify,
     }));
 
-      return res.status(200).json({
-        message: "Playlists fetched successfully!",
+    if (userSpotifyData) {
+      userSpotifyData.playlists = playlists;
+      await userSpotifyData.save(); 
+    } else {
+      await db.SpotifyUserData.create({
+        user_id: userId,
         playlists,
-        //playlists:data.items,
       });
+    }
+
+    return res.status(200).json({
+      message: "Playlists fetched successfully!",
+      playlists,
+        //playlists:data.items,
+    });
+
     } catch (error) {
       handleApiError(error, res, "Failed to fetch playlist tracks");
     }
@@ -131,15 +154,27 @@ export const getPlaylistTracks = async (req, res) => {
 
 export const getUserLikedTracks = async (req, res) => {
   try {
-    const { spotifyToken } = req;
+    const { spotifyToken, userId } = req;
+
+    const userSpotifyData = await db.SpotifyUserData.findOne({
+      where: { user_id: userId },
+    });
+
+    if (userSpotifyData?.liked_songs && !isDataStale(userSpotifyData.updatedAt)) {
+      return res.status(200).json({
+        message: "Liked tracks fetched successfully from database!",
+        tracks: userSpotifyData.liked_songs,
+      });
+    }
 
     const { data } = await axios.get("https://api.spotify.com/v1/me/tracks", {
       headers: { Authorization: `Bearer ${spotifyToken}` },
     });
 
     const tracks = data.items.map((item) => ({
+      id: item.track.id,
       name: item.track.name,
-      artist: item.track.artists.map((artist) => artist.name),
+      artists: item.track.artists.map((artist) => artist.name),
       album: {
         name: item.track.album.name,
         images: item.track.album.images,
@@ -147,6 +182,16 @@ export const getUserLikedTracks = async (req, res) => {
       duration_ms: item.track.duration_ms,
       externalUrl: item.track.external_urls.spotify,
     }));
+
+    if (userSpotifyData) {
+      userSpotifyData.liked_songs = tracks;
+      await userSpotifyData.save();
+    } else {
+      await db.SpotifyUserData.create({
+        user_id: userId,
+        liked_songs: tracks,
+      });
+    }
 
     return res.json({ message: "Liked tracks fetched successfully!", total_tracks: data.total, tracks });
   } catch (error) {
