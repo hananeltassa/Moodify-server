@@ -5,7 +5,12 @@ import { handleApiError } from "../utils/handleApiError.js";
 import { generateJWT } from "../utils/generateJWT.js";
 
 export const spotifySignin = passport.authenticate("spotify", {
-  scope: ["user-read-email", "user-read-private", "user-library-read", "user-read-playback-state"],
+  scope: ["user-read-email", 
+    "user-read-private", 
+    "user-modify-playback-state", 
+    "user-library-read", 
+    "user-read-playback-state"
+  ],
 });
 
 export const spotifyCallback = (req, res, next) => {
@@ -105,6 +110,7 @@ export const getPlaylistTracks = async (req, res) => {
       artists: item.track.artists.map((artist) => artist.name),
       album: {
         name: item.track.album.name,
+        uri: item.track.album.uri,
         images: item.track.album.images,
         release_date: item.track.album.release_date,
         total_tracks: item.track.album.total_tracks,
@@ -212,7 +218,7 @@ export const searchSpotify = async (req, res) => {
 
     const results = {
       artists: data.artists?.items
-        ?.filter((item) => item?.name) // Ensure item and its name exist
+        ?.filter((item) => item?.name) 
         .map((item) => ({
           name: item.name,
           genres: item.genres,
@@ -256,7 +262,7 @@ export const getMoodBasedPlaylists = async (req, res) => {
   try {
     const { spotifyToken } = req;
     const { mood = "chill", limit = 10, offset = 0, market = "US" } = req.query;
-    
+
     const moodMapping = {
       happy: "party",
       sad: "chill",
@@ -301,3 +307,4 @@ export const getMoodBasedPlaylists = async (req, res) => {
     handleApiError(error, res, "Failed to fetch mood-based playlists");
   }
 };
+

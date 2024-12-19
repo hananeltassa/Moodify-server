@@ -3,9 +3,12 @@ import { authenticate } from '../middlewares/authMiddleware.js';
 import { spotifyAuthMiddleware } from "../middlewares/authSpotify.js";
 import { spotifySignin, spotifyCallback, getSpotifyPlaylistsUser, getPlaylistTracks, getUserLikedTracks, 
     getUserSavedAlbums, getAlbumTracks,
-    searchSpotify, getMoodBasedPlaylists, 
-    
+    searchSpotify, getMoodBasedPlaylists,  
 } from "../controllers/spotifyController.js";
+
+import {
+    startPlayback,
+} from "../controllers/spotifyPlaybackController.js";
 
 const router = express.Router();
 
@@ -24,5 +27,7 @@ router.get("/spotify/search", authenticate, spotifyAuthMiddleware, searchSpotify
 router.get("/spotify/mood-playlists", authenticate, spotifyAuthMiddleware, getMoodBasedPlaylists);
 
 //router.get("/spotify/featured-playlists", authenticate, getFeaturedPlaylists);
+
+router.put("/spotify/play", authenticate, spotifyAuthMiddleware, startPlayback);
 
 export default router;
