@@ -17,6 +17,7 @@ module.exports = {
         },
         onDelete: 'CASCADE', 
         onUpdate: 'CASCADE', 
+        unique: true,
       },
       liked_songs: {
         type: Sequelize.JSONB,

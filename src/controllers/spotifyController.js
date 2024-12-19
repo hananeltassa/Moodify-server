@@ -401,3 +401,48 @@ export const getNewReleases = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch new releases." });
   }
 };
+
+export const refreshSpotifyData = async (req, res) => {
+  try {
+    const { spotifyToken, userId } = req; 
+
+    const { data: playlistsData } = await axios.get("https://api.spotify.com/v1/me/playlists", {
+      headers: { Authorization: `Bearer ${spotifyToken}` },
+    });
+
+    const playlists = playlistsData.items.map((playlist) => ({
+      id: playlist.id,
+      name: playlist.name,
+      description: playlist.description,
+      images: playlist.images,
+      totalTracks: playlist.tracks.total,
+    }));
+
+    const { data: likedTracksData } = await axios.get("https://api.spotify.com/v1/me/tracks", {
+      headers: { Authorization: `Bearer ${spotifyToken}` },
+    });
+
+    const likedTracks = likedTracksData.items.map((item) => ({
+      id: item.track.id,
+      name: item.track.name,
+      artists: item.track.artists.map((artist) => artist.name),
+      album: {
+        name: item.track.album.name,
+        images: item.track.album.images,
+      },
+      duration_ms: item.track.duration_ms,
+      externalUrl: item.track.external_urls.spotify,
+    }));
+
+    await db.SpotifyUserData.upsert({
+      user_id: userId,
+      playlists,
+      liked_songs: likedTracks,
+    });
+
+    return res.status(200).json({ message: "Spotify data refreshed successfully!" });
+  } catch (error) {
+    console.error("Error refreshing Spotify data:", error.message);
+    res.status(500).json({ message: "Failed to refresh Spotify data" });
+  }
+};

@@ -9,6 +9,7 @@ import {
   searchSpotify, 
   getMoodBasedPlaylists,
   getNewReleases,
+  refreshSpotifyData,
 } from "../controllers/spotifyController.js";
 import {
   startPlayback,
@@ -38,5 +39,6 @@ router.put("/spotify/play", authenticate, spotifyAuthMiddleware, startPlayback);
 router.put("/spotify/pause", authenticate, spotifyAuthMiddleware, pausePlayback);
 router.post("/spotify/next", authenticate, spotifyAuthMiddleware, skipToNextTrack);
 router.post("/spotify/previous", authenticate, spotifyAuthMiddleware, skipTopreviousTrack);
+router.post("/refresh", authenticate, spotifyAuthMiddleware, refreshSpotifyData);
 
 export default router;
