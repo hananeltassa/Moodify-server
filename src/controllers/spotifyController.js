@@ -308,3 +308,51 @@ export const getMoodBasedPlaylists = async (req, res) => {
   }
 };
 
+export const getNewReleases = async (req, res) => {
+  try {
+    const { spotifyToken } = req;
+
+    const { limit =50, offset= 0, country = "LB"} = req.query;
+
+    const { data } = await axios.get("https://api.spotify.com/v1/browse/new-releases",{
+      headers: {
+        Authorization: `Bearer ${spotifyToken}`,
+      },
+      params: {
+        limit: parseInt(limit, 10),
+        offset: parseInt(offset, 10),
+        country,
+      }
+    });
+
+    const albums = data.albums.items.map((album) => ({
+      name: album.name,
+      artists: album.artists.map((artist) => artist.name),
+      album_id: album.id,
+      uri: album.uri,
+      releaseDate: album.release_date,
+      totalTracks: album.total_tracks,
+      externalUrl: album.external_urls.spotify,
+      image: album.images,
+    }));
+
+    res.json({
+      message: "New releases fetched successfully!",
+      total: data.albums.total,
+      limit: data.albums.limit,
+      offset: data.albums.offset,
+      next: data.albums.next,
+      previous: data.albums.previous,
+      albums,
+      //albumss: data.albums,
+    });
+  } catch (error) {
+    console.error("Error fetching new releases:", error.response?.data || error.message);
+
+    if (error.response?.status === 401) {
+      return res.status(401).json({ message: "Spotify access token expired. Please log in again." });
+    }
+
+    res.status(500).json({ message: "Failed to fetch new releases." });
+  }
+};
