@@ -4,7 +4,7 @@ import { Model } from 'sequelize';
 export default (sequelize, DataTypes) => {
   class SpotifyGlobalData extends Model {
     static associate(models) {
-      // Future associations can be defined here
+      // Define associations here if needed
     }
   }
 
@@ -38,13 +38,41 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: false,
       },
+      popularity: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      genre: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: true,
+      },
+      release_date: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      duration_ms: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      external_url: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      images: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      followers: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
     },
     {
       sequelize,
       modelName: 'SpotifyGlobalData',
       tableName: 'SpotifyGlobalData',
-      timestamps: true, 
-      underscored: true, 
+      timestamps: true, // Automatically adds createdAt and updatedAt fields
+      underscored: true, // Use snake_case column names
     }
   );
 
