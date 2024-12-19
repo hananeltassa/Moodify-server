@@ -1,4 +1,3 @@
-import { cat } from "@huggingface/transformers";
 import axios from "axios";
 
 export const startPlayback = async (req, res) => {
@@ -59,9 +58,9 @@ export const skipToNextTrack = async(req, res) => {
         axios.post("https://api.spotify.com/v1/me/player/next",
             {},
             {
-                headers: {
-                    Authorization : `Bearer ${spotifyToken}`,
-                },
+              headers: {
+                Authorization : `Bearer ${spotifyToken}`,
+              },
             }
         );
 
@@ -76,4 +75,28 @@ export const skipToNextTrack = async(req, res) => {
         res.status(500).json({ message: "Failed to skip to the next track." });
     }
 }
-  
+
+export const skipTopreviousTrack = async (req, res) => {
+  try {
+    const { spotifyToken } = req;
+
+    axios.post("https://api.spotify.com/v1/me/player/previous",
+      {},
+      {
+        headers: {
+          Authorization : `Bearer ${spotifyToken}`
+        },
+      }
+    );
+
+    res.json({message: "Skipped to the previous track successfully!"});
+  } catch (error) {
+    console.error("Error skipping to previous track:", error.response?.data || error.message);
+
+    if (error.response?.status === 404) {
+      return res.status(404).json({ message: "No active device found. Please open Spotify on a device." });
+    }
+
+    res.status(500).json({ message: "Failed to skip to the previous track." });
+  }
+}
