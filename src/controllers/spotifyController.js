@@ -121,7 +121,6 @@ export const getSpotifyPlaylistsUser = async (req, res) => {
 export const getPlaylistTracks = async (req, res) => {
   try {
     const { playlistId } = req.params;
-
     const { spotifyToken } = req;
 
     const { data } = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
@@ -141,16 +140,71 @@ export const getPlaylistTracks = async (req, res) => {
       externalUrl: item.track.external_urls.spotify,
     }));
 
+    const artistGenres = {};
+
+    for (const item of data.items) {
+      const track = item.track;
+
+      for (const artist of track.artists) {
+        if (!artistGenres[artist.id]) {
+          const { data: artistData } = await axios.get(`https://api.spotify.com/v1/artists/${artist.id}`, {
+            headers: { Authorization: `Bearer ${spotifyToken}` },
+          });
+          artistGenres[artist.id] = artistData.genres;
+        }
+      }
+
+      const combinedGenres = track.artists.flatMap((artist) => artistGenres[artist.id] || []);
+
+      await db.SpotifyGlobalData.upsert({
+        type: "track",
+        spotify_id: track.id,
+        name: track.name,
+        metadata: {
+          artists: track.artists.map((artist) => ({
+            name: artist.name,
+            id: artist.id,
+            externalUrl: artist.external_urls.spotify,
+          })),
+          album: {
+            name: track.album.name,
+            id: track.album.id,
+            externalUrl: track.album.external_urls.spotify,
+          },
+        },
+        popularity: track.popularity,
+        genre: combinedGenres, 
+        release_date: track.album.release_date,
+        duration_ms: track.duration_ms,
+        external_url: track.external_urls.spotify,
+        images: track.album.images,
+      });
+
+      for (const artist of track.artists) {
+        await db.SpotifyGlobalData.upsert({
+          type: "artist",
+          spotify_id: artist.id,
+          name: artist.name,
+          metadata: {
+            externalUrl: artist.external_urls.spotify,
+          },
+          genre: artistGenres[artist.id], 
+          followers: null,
+        });
+      }
+    }
+
     return res.json({
-      message: "Tracks fetched successfully!",
+      message: "Tracks with genres fetched successfully!",
       total_tracks: data.total,
       tracks,
-      //tracks: data.items,
     });
   } catch (error) {
+    console.error("Error fetching playlist tracks with genres:", error.message);
     handleApiError(error, res, "Failed to fetch playlist tracks");
   }
 };
+
 
 export const getUserLikedTracks = async (req, res) => {
   try {
