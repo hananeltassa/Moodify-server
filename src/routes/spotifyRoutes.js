@@ -7,7 +7,7 @@ import { spotifySignin, spotifyCallback, getSpotifyPlaylistsUser, getPlaylistTra
 } from "../controllers/spotifyController.js";
 
 import {
-    startPlayback,
+    startPlayback, pausePlayback
 } from "../controllers/spotifyPlaybackController.js";
 
 const router = express.Router();
@@ -29,5 +29,6 @@ router.get("/spotify/mood-playlists", authenticate, spotifyAuthMiddleware, getMo
 //router.get("/spotify/featured-playlists", authenticate, getFeaturedPlaylists);
 
 router.put("/spotify/play", authenticate, spotifyAuthMiddleware, startPlayback);
+router.put("/spotify/pause", authenticate, spotifyAuthMiddleware, pausePlayback);
 
 export default router;
