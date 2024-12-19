@@ -72,62 +72,49 @@ export const spotifyCallback = (req, res, next) => {
 };
 
 export const getSpotifyPlaylistsUser = async (req, res) => {
-  try {
-    const { id: userId } = req.user;
+    try {
+      const { spotifyToken } = req;
+      const { data } = await axios.get("https://api.spotify.com/v1/me/playlists", {
+        headers: { Authorization: `Bearer ${spotifyToken}` },
+      });
 
-    const user = await db.User.findByPk(userId);
+      const playlists = data.items.map((playlist) => ({
+        id: playlist.id,
+        name: playlist.name, 
+        description: playlist.description,
+        images: playlist.images, 
+        owner: {
+          name: playlist.owner.display_name,
+          url: playlist.owner.external_urls.spotify,
+        },
+        totalTracks: playlist.tracks.total, 
+        externalUrl: playlist.external_urls.spotify, 
+      }));
 
-    if (!user?.access_token) {
-      return res.status(401).json({ message: "Unauthorized: Spotify access token not found" });
+      return res.status(200).json({
+        message: "Playlists fetched successfully!",
+        playlists,
+        //playlists:data.items,
+      });
+    } catch (error) {
+      console.error("Error fetching Spotify playlists:", error.message);
+      
+      if (error.response?.status === 401) {
+        return res.status(401).json({ message: "Spotify access token expired. Please log in again." });
+      }
+
+      return res.status(500).json({ message: "Failed to fetch playlists" });
     }
-
-    const { data } = await axios.get("https://api.spotify.com/v1/me/playlists", {
-      headers: { Authorization: `Bearer ${user.access_token}` },
-    });
-
-    const playlists = data.items.map((playlist) => ({
-      id: playlist.id,
-      name: playlist.name,
-      description: playlist.description,
-      images: playlist.images, 
-      owner: {
-        name: playlist.owner.display_name,
-        url: playlist.owner.external_urls.spotify,
-      },
-      totalTracks: playlist.tracks.total, 
-      externalUrl: playlist.external_urls.spotify, 
-    }));
-
-    return res.status(200).json({
-      message: "Playlists fetched successfully!",
-      playlists,
-      //playlists:data.items,
-    });
-  } catch (error) {
-    console.error("Error fetching Spotify playlists:", error.message);
-    
-    if (error.response?.status === 401) {
-      return res.status(401).json({ message: "Spotify access token expired. Please log in again." });
-    }
-
-    return res.status(500).json({ message: "Failed to fetch playlists" });
-  }
 };
 
 export const getPlaylistTracks = async (req, res) => {
   try {
     const { playlistId } = req.params;
 
-    const { id: userId } = req.user;
-
-    const user = await db.User.findByPk(userId);
-
-    if (!user?.access_token) {
-      return res.status(401).json({ message: "Unauthorized: Spotify access token not found" });
-    }
+    const { spotifyToken } = req;
 
     const { data } = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-      headers: { Authorization: `Bearer ${user.access_token}` },
+      headers: { Authorization: `Bearer ${spotifyToken}` },
     });
 
     const tracks = data.items.map((item) => ({
@@ -161,16 +148,11 @@ export const getPlaylistTracks = async (req, res) => {
 
 export const getUserLikedTracks = async (req, res) => {
   try {
-    const {id: userId} = req.user;
 
-    const user = await db.User.findByPk(userId);
-
-    if (!user?.access_token){
-      return res.status(401).json({ message: "Unauthorized: Spotify access token not found "});
-    }
+    const { spotifyToken } = req;
 
     const { data } = await axios.get(`https://api.spotify.com/v1/me/tracks`,{
-      headers: { Authorization: `Bearer ${user.access_token}` },
+      headers: { Authorization: `Bearer ${spotifyToken}` },
     });
 
     const tracks = data.items.map((item) => ({
@@ -202,15 +184,10 @@ export const getUserLikedTracks = async (req, res) => {
 
 export const getUserSavedAlbums = async (req, res) => {
   try{
-    const { id : userId } = req.user;
-    const user = await db.User.findByPk(userId);
-
-    if (!user?.access_token){
-      return res.status(401).json({ message: "Unauthorized: Spotify access token not found "});
-    }
+    const { spotifyToken } = req;
 
     const {data} = await axios.get(`https://api.spotify.com/v1/me/albums`,{
-      headers: { Authorization : `Bearer ${user.access_token}`}
+      headers: { Authorization : `Bearer ${spotifyToken}`}
     });
 
     const albums = data.items.map((item) => ({
@@ -244,16 +221,10 @@ export const getAlbumTracks = async (req, res) => {
   try {
     const { albumId } = req.params;
 
-    const { id: userId } = req.user;
-
-    const user = await db.User.findByPk(userId);
-
-    if (!user?.access_token) {
-      return res.status(401).json({ message: "Unauthorized: Spotify access token not found" });
-    }
+    const { spotifyToken } = req;
 
     const { data } = await axios.get(`https://api.spotify.com/v1/albums/${albumId}/tracks`, {
-      headers: { Authorization: `Bearer ${user.access_token}` },
+      headers: { Authorization: `Bearer ${spotifyToken}` },
     });
 
     const albumTracks = data.items.map((track) => ({
@@ -290,16 +261,10 @@ export const searchSpotify = async (req, res) => {
     }
     const searchType = type || "track,album,artist,playlist";
 
-    const { id: userId } = req.user;
-
-    const user = await db.User.findByPk(userId);
-
-    if (!user?.access_token) {
-      return res.status(401).json({ message: "Unauthorized: Spotify access token not found" });
-    }
+    const { spotifyToken } = req;
 
     const { data } = await axios.get("https://api.spotify.com/v1/search", {
-      headers: { Authorization: `Bearer ${user.access_token}` },
+      headers: { Authorization: `Bearer ${spotifyToken}` },
       params: {
         q: query,
         type: searchType,
