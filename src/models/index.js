@@ -6,7 +6,9 @@ import MoodDetectionInput from "./moodDetectionInput.js";
 import Challenge from "./challenge.js";
 import AIMusicSuggestion from "./aiMusicSuggestion.js";
 import AIChallenge from "./aiChallenge.js";
-import SpotifyGlobalData from "./SpotifyGlobalData.js";
+import SpotifyGlobalData from "./spotifyGlobalData.js";
+import GeneralMusicData from "./generalMusicData.js"; 
+import UserGeneralMusicData from "./userGeneralMusicData.js";
 
 
 dotenv.config();
@@ -32,6 +34,8 @@ const db = {
   AIMusicSuggestion: AIMusicSuggestion(sequelize, Sequelize.DataTypes),
   AIChallenge: AIChallenge(sequelize, Sequelize.DataTypes),
   SpotifyGlobalData: SpotifyGlobalData(sequelize, Sequelize.DataTypes),
+  GeneralMusicData: GeneralMusicData(sequelize, Sequelize.DataTypes),
+  UserGeneralMusicData: UserGeneralMusicData(sequelize, Sequelize.DataTypes),
 };
 
 // Set up associations
@@ -41,7 +45,7 @@ Object.keys(db).forEach((modelName) => {
   }
 });
 
-//console.log("Loaded Models:", Object.keys(db));
+console.log("Loaded Models:", Object.keys(db));
 
 // Export the Sequelize instance and models
 db.sequelize = sequelize;
