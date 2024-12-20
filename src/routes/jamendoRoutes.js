@@ -4,7 +4,10 @@ import {getTrendingTracks,
     getPlaylistTracks, 
     getTracksByGenre,
     searchMusic,
-    getArtists} from "../controllers/jamendoController.js";
+    getArtists,
+    getNewReleases,
+    getAlbums
+} from "../controllers/jamendoController.js";
 
 const router = express.Router();
 
@@ -14,5 +17,7 @@ router.get("/playlists/:playlistId/tracks", getPlaylistTracks);
 router.get("/tracks/genre", getTracksByGenre);
 router.get("/search", searchMusic);
 router.get("/artists", getArtists); 
+router.get("/new-release", getNewReleases); 
+router.get("/albums", getAlbums); 
 
 export default router;
