@@ -8,11 +8,13 @@ const JAMENDO_API_BASE = "https://api.jamendo.com/v3.0";
 
 export const getTrendingTracks = async (req, res) => {
   try {
+    const { limit = 50, order = "popularity_total" } = req.query;
+
     const { data } = await axios.get(`${JAMENDO_API_BASE}/tracks`, {
       params: {
         client_id: process.env.JAMENDO_CLIENT_ID, 
-        limit: 100, 
-        order: "popularity_total", 
+        limit: parseInt(limit, 10),
+        order,
       },
     });
 
@@ -63,8 +65,8 @@ export const getPlaylists = async (req, res) => {
 
     res.status(200).json({
       message: "Playlists fetched successfully!",
-      playlists,
-      //playlists: data.results,
+      //playlists,
+      playlists: data.results,
     });
   } catch (error) {
     handleApiError(error, res, "Failed to fetch trending tracks from Jamendo.");
@@ -103,7 +105,7 @@ export const getPlaylistTracks = async (req, res) => {
 
 export const getTracksByGenre = async (req, res) =>{
   try {
-    const { genre }= req.query;
+    const { genre, limit = 50 } = req.query;
 
     const { data } = await axios.get(`${JAMENDO_API_BASE}/tracks`, {
       params: {
@@ -131,6 +133,48 @@ export const getTracksByGenre = async (req, res) =>{
     handleApiError(error, res, "Failed to fetch tracks by genre.");
   }
 };
+
+export const searchMusic = async (req, res) => {
+  try {
+    const { query, type = "tracks" } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ message: "Query is required for search." });
+    }
+
+    const { data } = await axios.get(`${JAMENDO_API_BASE}/${type}`, {
+      params: {
+        client_id: process.env.JAMENDO_CLIENT_ID,
+        namesearch: query,
+      },
+    });
+
+    const formatResults = (type, results) => {
+      if (type === "tracks") {
+        return results.map((track) => ({
+          id: track.id,
+          name: track.name,
+          artist: track.artist_name,
+          album: track.album_name,
+          duration: track.duration,
+          audio: track.audio,
+          image: track.image,
+        }));
+      }
+      return results;
+    };
+
+    const formattedResults = formatResults(type, data.results);
+
+    res.status(200).json({
+      message: `${type} search results fetched successfully!`,
+      results: formattedResults,
+    });
+  } catch (error) {
+    handleApiError(error, res, "Failed to search music.");
+  }
+};
+
 
 export const getArtists = async (req, res) => {
   try {
