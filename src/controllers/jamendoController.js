@@ -66,3 +66,33 @@ export const getPlaylists = async (req, res) => {
     handleApiError(error, res, "Failed to fetch trending tracks from Jamendo.");
   }
 };
+
+export const getPlaylistTracks = async (req, res) => {
+  const { playlistId } = req.params;
+
+  try {
+    const { data } = await axios.get(`${JAMENDO_API_BASE}/playlists/tracks`, {
+      params: {
+        client_id: process.env.JAMENDO_CLIENT_ID,
+        id: playlistId,
+      },
+    });
+
+    const tracks = data.results.map((track) => ({
+      id: track.id,
+      name: track.name,
+      artist: track.artist_name,
+      album: track.album_name,
+      duration: track.duration,
+      audio: track.audio,
+      cover: track.image,
+    }));
+
+    res.status(200).json({
+      message: "Tracks fetched successfully!",
+      tracks: data.results,
+    });
+  } catch (error) {
+    handleApiError(error, res, "Failed to fetch playlist tracks from Jamendo.");
+  }
+};
