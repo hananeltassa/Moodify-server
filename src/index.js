@@ -7,6 +7,7 @@ import passport from "./config/passport.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from './routes/adminRoutes.js';
 import spotifyRoutes from "./routes/spotifyRoutes.js";
+import JamendoRoutes from "./routes/jamendoRoutes.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(passport.initialize());
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", spotifyRoutes)
+app.use("/api/music", JamendoRoutes);
 
 const startServer = async () => {
     try {
