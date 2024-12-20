@@ -96,3 +96,23 @@ export const getPlaylistTracks = async (req, res) => {
     handleApiError(error, res, "Failed to fetch playlist tracks from Jamendo.");
   }
 };
+
+export const getArtists = async (req, res) => {
+  try {
+    const { data } = await axios.get(`${JAMENDO_API_BASE}/artists` ,{
+      params: {
+        client_id: process.env.JAMENDO_CLIENT_ID, 
+        limit: 100
+      }
+
+    });
+
+    res.status(200).json({
+      message: "Artists fetched successfully!",
+      artists: data.results,
+    });
+
+  } catch (error) {
+    handleApiError(error, res, "Failed to fetch artists from Jamendo.");
+  }
+}
