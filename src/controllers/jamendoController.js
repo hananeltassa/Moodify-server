@@ -37,3 +37,32 @@ export const getTrendingTracks = async (req, res) => {
 };
 
 
+export const getPlaylists = async (req, res) => {
+  try {
+    const { data } = await axios.get(`${JAMENDO_API_BASE}/playlists`, {
+      params: {
+        client_id: process.env.JAMENDO_CLIENT_ID,
+        limit: 10,
+        //order: "popularity_total",
+        //tags: "chill",
+        namesearch: "chill",
+        datebetween: "2024-01-01_2024-12-12",
+      },
+    });
+
+    const playlists = data.results.map((playlist) => ({
+      id: playlist.id,
+      name: playlist.name,
+      description: playlist.short_description || "No description available",
+      cover: playlist.image,
+      track_count: playlist.tracks,
+    }));
+
+    res.status(200).json({
+      message: "Playlists fetched successfully!",
+      playlists: data.results,
+    });
+  } catch (error) {
+    handleApiError(error, res, "Failed to fetch trending tracks from Jamendo.");
+  }
+};
