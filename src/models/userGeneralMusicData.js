@@ -29,7 +29,7 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
       },
       type: {
-        type: DataTypes.ENUM("liked", "saved", "playlist"),
+        type: DataTypes.ENUM("track", "album", "playlist"),
         allowNull: false,
       },
     },

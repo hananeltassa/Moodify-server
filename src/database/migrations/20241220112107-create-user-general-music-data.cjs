@@ -31,7 +31,7 @@ module.exports = {
         onUpdate: "CASCADE",
       },
       type: {
-        type: Sequelize.ENUM("liked", "saved", "playlist", "album"),
+        type: Sequelize.ENUM("track", "album", "playlist"),
         allowNull: false,
       },
       created_at: {
