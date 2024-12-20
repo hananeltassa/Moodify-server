@@ -1,6 +1,8 @@
 import axios from "axios";
-import { handleApiError } from "../utils/handleApiError.js"; 
 import dotenv from "dotenv";
+import db from "../models/index.js";
+import { handleApiError } from "../utils/handleApiError.js"; 
+
 
 dotenv.config();
 
@@ -256,3 +258,39 @@ export const getAlbums = async (req, res) => {
     handleApiError(error, res, "Failed to fetch albums from Jamendo.");
   }
 };
+
+export const saveLikedItem = async (req, res) => {
+  try {
+    const { musicId, type } = req.body;
+
+    if (!musicId || !type) {
+      return res.status(400).json({ message: "musicId and type are required." });
+    }
+
+    if (!["track", "album", "playlist"].includes(type)) {
+      return res.status(400).json({ message: "Invalid type. Must be 'track', 'album', or 'playlist'." });
+    }
+
+    const userId = req.user.id;
+
+    const existingEntry = await db.UserGeneralMusicData.findOne({
+      where: { user_id: userId, music_id: musicId, type },
+    });
+
+    if (existingEntry) {
+      return res.status(400).json({ message: "This item is already liked." });
+    }
+
+    await db.UserGeneralMusicData.create({
+      user_id: userId,
+      music_id: musicId,
+      type,
+    });
+
+    res.status(201).json({ message: `${type} liked successfully!` });
+  } catch (error) {
+    console.error("Error saving liked item:", error.message);
+    res.status(500).json({ message: "Failed to save liked item." });
+  }
+};
+

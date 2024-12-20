@@ -1,4 +1,5 @@
 import express from "express";
+import { authenticate } from '../middlewares/authMiddleware.js';
 import {getTrendingTracks, 
     getPlaylists, 
     getPlaylistTracks, 
@@ -6,8 +7,10 @@ import {getTrendingTracks,
     searchMusic,
     getArtists,
     getNewReleases,
-    getAlbums
+    getAlbums,
+    saveLikedItem,
 } from "../controllers/jamendoController.js";
+
 
 const router = express.Router();
 
@@ -19,5 +22,6 @@ router.get("/search", searchMusic);
 router.get("/artists", getArtists); 
 router.get("/new-release", getNewReleases); 
 router.get("/albums", getAlbums); 
+router.post("/liked",authenticate, saveLikedItem);
 
 export default router;
