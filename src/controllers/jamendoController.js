@@ -226,3 +226,33 @@ export const getNewReleases = async (req, res) => {
     handleApiError(error, res, "Failed to fetch new releases from Jamendo.");
   }
 };
+
+export const getAlbums = async (req, res) => {
+  try {
+    const { query, limit = 20 } = req.query;
+
+    const { data } = await axios.get(`${JAMENDO_API_BASE}/albums`, {
+      params: {
+        client_id: process.env.JAMENDO_CLIENT_ID,
+        namesearch: query,
+        limit: parseInt(limit, 10),
+      },
+    });
+
+    const albums = data.results.map((album) => ({
+      id: album.id,
+      name: album.name,
+      artist: album.artist_name,
+      release_date: album.release_date,
+      image: album.image,
+      track_count: album.tracks,
+    }));
+
+    res.status(200).json({
+      message: "Albums fetched successfully!",
+      albums,
+    });
+  } catch (error) {
+    handleApiError(error, res, "Failed to fetch albums from Jamendo.");
+  }
+};
