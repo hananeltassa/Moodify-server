@@ -3,10 +3,21 @@ import dotenv from "dotenv";
 import db from "../models/index.js";
 import { handleApiError } from "../utils/handleApiError.js"; 
 
-
 dotenv.config();
 
 const JAMENDO_API_BASE = "https://api.jamendo.com/v3.0";
+
+const formatTracks = (tracks) => {
+  return tracks.map((track) => ({
+    id: track.id,
+    name: track.name,
+    artist: track.artist_name,
+    album: track.album_name,
+    duration: track.duration,
+    audio: track.audio,
+    image: track.image,
+  }));
+};
 
 export const getTrendingTracks = async (req, res) => {
   try {
@@ -20,19 +31,9 @@ export const getTrendingTracks = async (req, res) => {
       },
     });
 
-    const tracks = data.results.map((track) => ({
-      id: track.id,
-      name: track.name,
-      artist: track.artist_name,
-      album: track.album_name,
-      duration: track.duration,
-      audio: track.audio,
-      image: track.image, 
-    }));
-
     res.status(200).json({
       message: "Trending tracks fetched successfully!",
-      tracks,
+      tracks: formatTracks(data.results),
       //tracks: data.results,
     });
   } catch (error) {
@@ -57,14 +58,6 @@ export const getPlaylists = async (req, res) => {
       },
     });
 
-    const playlists = data.results.map((playlist) => ({
-      id: playlist.id,
-      name: playlist.name,
-      description: playlist.short_description || "No description available",
-      image: playlist.image,
-      track_count: playlist.tracks,
-    }));
-
     res.status(200).json({
       message: "Playlists fetched successfully!",
       //playlists,
@@ -86,19 +79,9 @@ export const getPlaylistTracks = async (req, res) => {
       },
     });
 
-    const tracks = data.results.map((track) => ({
-      id: track.id,
-      name: track.name,
-      artist: track.artist_name,
-      album: track.album_name,
-      duration: track.duration,
-      audio: track.audio,
-      image: track.image,
-    }));
-
     res.status(200).json({
       message: "Tracks fetched successfully!",
-      tracks: data.results,
+      tracks: formatTracks(data.results),
     });
   } catch (error) {
     handleApiError(error, res, "Failed to fetch playlist tracks from Jamendo.");
@@ -115,21 +98,11 @@ export const getTracksByGenre = async (req, res) =>{
         tags: genre,
         limit: parseInt(limit, 10),
       },
-    });
-
-    const tracks = data.results.map((track) => ({
-      id: track.id,
-      name: track.name,
-      artist: track.artist_name,
-      album: track.album_name,
-      duration: track.duration,
-      audio: track.audio,
-      cover: track.image,
-    }));
+    })
 
     res.status(200).json({
       message: `Tracks fetched successfully for genre: ${genre}!`,
-      tracks,
+      tracks: formatTracks(data.results),
     });
   } catch (error) {
     handleApiError(error, res, "Failed to fetch tracks by genre.");
@@ -151,26 +124,11 @@ export const searchMusic = async (req, res) => {
       },
     });
 
-    const formatResults = (type, results) => {
-      if (type === "tracks") {
-        return results.map((track) => ({
-          id: track.id,
-          name: track.name,
-          artist: track.artist_name,
-          album: track.album_name,
-          duration: track.duration,
-          audio: track.audio,
-          image: track.image,
-        }));
-      }
-      return results;
-    };
-
-    const formattedResults = formatResults(type, data.results);
+    const results = type === "tracks" ? formatTracks(data.results) : data.results;
 
     res.status(200).json({
       message: `${type} search results fetched successfully!`,
-      results: formattedResults,
+      results,
     });
   } catch (error) {
     handleApiError(error, res, "Failed to search music.");
@@ -185,8 +143,6 @@ export const getArtists = async (req, res) => {
         limit: 100
       }
     });
-
-
 
     res.status(200).json({
       message: "Artists fetched successfully!",
@@ -210,19 +166,9 @@ export const getNewReleases = async (req, res) => {
       },
     });
 
-    const tracks = data.results.map((track) => ({
-      id: track.id,
-      name: track.name,
-      artist: track.artist_name,
-      album: track.album_name,
-      duration: track.duration,
-      audio: track.audio,
-      image: track.image,
-    }));
-
     res.status(200).json({
       message: "New releases fetched successfully!",
-      tracks,
+      tracks: formatTracks(data.results),
     });
   } catch (error) {
     handleApiError(error, res, "Failed to fetch new releases from Jamendo.");
@@ -262,23 +208,56 @@ export const getAlbums = async (req, res) => {
 export const saveLikedItem = async (req, res) => {
   try {
     const { musicId, type } = req.body;
-
-    if (!musicId || !type) {
-      return res.status(400).json({ message: "musicId and type are required." });
-    }
-
-    if (!["track", "album", "playlist"].includes(type)) {
-      return res.status(400).json({ message: "Invalid type. Must be 'track', 'album', or 'playlist'." });
-    }
-
     const userId = req.user.id;
+
+    if (!musicId || !type || !["track", "album", "playlist"].includes(type)) {
+      return res.status(400).json({ message: "Invalid musicId or type" });
+    }
+
+    let music = await db.GeneralMusicData.findByPk(musicId);
+
+    if (!music) {
+      const endpointMap = {
+        track: "tracks",
+        album: "albums",
+        playlist: "playlists",
+      };
+
+      const { data } = await axios.get(`${JAMENDO_API_BASE}/${endpointMap[type]}`, {
+        params: {
+          client_id: process.env.JAMENDO_CLIENT_ID,
+          id: musicId,
+        },
+      });
+
+      if (!data.results.length) {
+        return res.status(404).json({ message: "Music item not found" });
+      }
+
+      let metadata = data.results[0];
+
+      if (type === "track") {
+        metadata = formatTracks([metadata])[0];
+      }
+
+      music = await db.GeneralMusicData.create({
+        id: musicId,
+        type,
+        name: metadata.name,
+        metadata,
+        genre: metadata.genre || null,
+        popularity: metadata.popularity || null,
+        external_url: metadata.audio || null,
+        images: metadata.image || null,
+      });
+    }
 
     const existingEntry = await db.UserGeneralMusicData.findOne({
       where: { user_id: userId, music_id: musicId, type },
     });
 
     if (existingEntry) {
-      return res.status(400).json({ message: "This item is already liked." });
+      return res.status(400).json({ message: "This item is already liked" });
     }
 
     await db.UserGeneralMusicData.create({
@@ -289,8 +268,6 @@ export const saveLikedItem = async (req, res) => {
 
     res.status(201).json({ message: `${type} liked successfully!` });
   } catch (error) {
-    console.error("Error saving liked item:", error.message);
-    res.status(500).json({ message: "Failed to save liked item." });
+    handleApiError(error, res, "Failed to save liked item");
   }
 };
-
