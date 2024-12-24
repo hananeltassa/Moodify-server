@@ -5,7 +5,7 @@ import admin from "../config/firebase.js";
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, birthday, gender } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: "Name is required." });
@@ -15,6 +15,15 @@ export const registerUser = async (req, res) => {
     }
     if (!password) {
       return res.status(400).json({ error: "Password is required." });
+    }
+
+    const allowedGenders = ["male", "female", "prefer not to say"];
+    if (gender && !allowedGenders.includes(gender)) {
+      return res.status(400).json({ error: "Invalid gender value." });
+    }
+
+    if (birthday && isNaN(Date.parse(birthday))) {
+      return res.status(400).json({ error: "Invalid birthday format. Use YYYY-MM-DD." });
     }
 
     const existingUser = await db.User.findOne({ where: { email } });
@@ -28,6 +37,8 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      birthday: birthday || null,
+      gender: gender || null,
     });
 
     res.status(201).json({
@@ -36,6 +47,8 @@ export const registerUser = async (req, res) => {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
+        birthday: newUser.birthday,
+        gender: newUser.gender,
       },
     });
   } catch (error) {
@@ -43,6 +56,7 @@ export const registerUser = async (req, res) => {
     res.status(500).json({ error: "Internal server error." });
   }
 };
+
 
 export const loginUser = async (req, res) => {
   try {

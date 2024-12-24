@@ -91,6 +91,17 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
+      birthday: { 
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+        validate: {
+          isDate: true,
+        },
+      },
+      gender: {
+        type: DataTypes.ENUM('male', 'female', 'prefer not to say'),
+        allowNull: true,
+      },
     },
     {
       sequelize,
