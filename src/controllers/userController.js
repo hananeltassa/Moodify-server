@@ -17,6 +17,13 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ error: "Password is required." });
     }
 
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        error: "Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.",
+      });
+    }
+
     const allowedGenders = ["male", "female", "prefer not to say"];
     if (gender && !allowedGenders.includes(gender)) {
       return res.status(400).json({ error: "Invalid gender value." });
@@ -26,7 +33,9 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ error: "Invalid birthday format. Use YYYY-MM-DD." });
     }
 
-    const existingUser = await db.User.findOne({ where: { email } });
+    const lowerCaseEmail = email.toLowerCase();
+
+    const existingUser = await db.User.findOne({ where: { email: lowerCaseEmail } });
     if (existingUser) {
       return res.status(400).json({ error: "Email already in use." });
     }
@@ -35,7 +44,7 @@ export const registerUser = async (req, res) => {
 
     const newUser = await db.User.create({
       name,
-      email,
+      email: lowerCaseEmail,
       password: hashedPassword,
       birthday: birthday || null,
       gender: gender || null,
