@@ -69,7 +69,9 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ error: "Password is required." });
     }
 
-    const user = await db.User.findOne({ where: { email } });
+    const lowerCaseEmail = email.toLowerCase();
+
+    const user = await db.User.findOne({ where: { email: lowerCaseEmail } });
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
