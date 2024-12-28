@@ -14,56 +14,92 @@ export const spotifySignin = passport.authenticate("spotify", {
   ],
 });
 
-export const spotifyCallback = (req, res, next) => {
-  passport.authenticate("spotify", { session: false }, async (err, user) => {
-    if (err || !user) {
-      return res.status(401).json({ message: "Spotify Authentication Failed" });
+export const spotifyCallback = async (req, res) => {
+  const { code, redirectUri, codeVerifier } = req.body;
+
+  if (!code || !redirectUri || !codeVerifier) {
+    return res.status(400).json({
+      message: 'Missing code, redirectUri, or codeVerifier',
+    });
+  }
+
+  try {
+    const tokenResponse = await axios.post(
+      'https://accounts.spotify.com/api/token',
+      new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+        code_verifier: codeVerifier,
+      }).toString(),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      }
+    );
+
+    const { access_token, refresh_token, expires_in } = tokenResponse.data;
+
+    const userProfile = await axios.get('https://api.spotify.com/v1/me', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    const {
+      id: spotifyId,
+      display_name: displayName,
+      email,
+      images,
+    } = userProfile.data;
+
+    const profilePic = images?.[0]?.url || null;
+
+    let existingUser = await db.User.findOne({ where: { spotify_id: spotifyId } });
+
+    if (!existingUser && email) {
+      existingUser = await db.User.findOne({ where: { email } });
     }
 
-    try {
-      let existingUser = await db.User.findOne({ where: { spotify_id: user.spotifyId } });
-
-      if (!existingUser && user.email) {
-        existingUser = await db.User.findOne({ where: { email: user.email } });
-      }
-
-      if (existingUser) {
-        existingUser.access_token = user.accessToken;
-        existingUser.refresh_token = user.refreshToken;
-        await existingUser.save();
-      } else {
-        existingUser = await db.User.create({
-          name: user.displayName || "Spotify User",
-          email: user.email || null,
-          password: "spotify_oauth_user",
-          spotify_id: user.spotifyId,
-          access_token: user.accessToken,
-          refresh_token: user.refreshToken,
-          profile_picture: user.profilePic,
-          role: "user",
-        });
-      }
-
-      const token = generateJWT(existingUser);
-
-      return res.json({
-        message: "Spotify Login Successful!",
-        user: {
-          id: existingUser.id,
-          spotifyId: existingUser.spotify_id,
-          name: existingUser.name,
-          email: existingUser.email,
-          profilePic: existingUser.profile_picture,
-          access_token: user.accessToken,
-          refresh_token: user.refreshToken,
-        },
-        token,
+    if (existingUser) {
+      existingUser.access_token = access_token;
+      existingUser.refresh_token = refresh_token;
+      await existingUser.save();
+    } else {
+      existingUser = await db.User.create({
+        name: displayName || 'Spotify User',
+        email: email || null,
+        password: 'spotify_oauth_user',
+        spotify_id: spotifyId,
+        access_token,
+        refresh_token,
+        profile_picture: profilePic,
+        role: 'user',
       });
-    } catch (error) {
-      console.error("Database Error:", error.message);
-      return res.status(500).json({ message: "Internal Server Error" });
     }
-  })(req, res, next);
+
+    const token = generateJWT(existingUser);
+
+    return res.status(200).json({
+      message: 'Spotify Login Successful!',
+      user: {
+        id: existingUser.id,
+        spotifyId: existingUser.spotify_id,
+        name: existingUser.name,
+        email: existingUser.email,
+        profilePic: existingUser.profile_picture,
+        access_token,
+        refresh_token,
+      },
+      token,
+    });
+  } catch (error) {
+    console.error('Error during Spotify token exchange or user saving:', error.response?.data || error.message);
+
+    return res.status(500).json({
+      message: 'Failed to authenticate with Spotify.',
+      details: error.response?.data || error.message,
+    });
+  }
 };
 
 export const getSpotifyPlaylistsUser = async (req, res) => {

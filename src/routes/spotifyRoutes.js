@@ -22,7 +22,7 @@ const router = express.Router();
 
 // Authentication routes
 router.get("/spotify/signin", spotifySignin);
-router.get("/spotify/callback", spotifyCallback);
+router.post("/spotify/callback", spotifyCallback);
 
 // Spotify user content routes
 router.get("/spotify/playlists", authenticate, spotifyAuthMiddleware, getSpotifyPlaylistsUser);
