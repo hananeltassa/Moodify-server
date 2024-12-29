@@ -1,18 +1,9 @@
 import axios from "axios";
-import passport from "passport";
 import db from "../models/index.js";
 import { handleApiError } from "../utils/handleApiError.js";
 import { generateJWT } from "../utils/generateJWT.js";
 import { isDataStale } from "../utils/isDataStale.js";
 
-export const spotifySignin = passport.authenticate("spotify", {
-  scope: ["user-read-email", 
-    "user-read-private", 
-    "user-modify-playback-state", 
-    "user-library-read", 
-    "user-read-playback-state"
-  ],
-});
 
 export const spotifyCallback = async (req, res) => {
   const { code, redirectUri, codeVerifier } = req.body;
