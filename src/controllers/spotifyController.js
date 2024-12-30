@@ -78,8 +78,8 @@ export const spotifyCallback = async (req, res) => {
         name: existingUser.name,
         email: existingUser.email,
         profilePic: existingUser.profile_picture,
-        access_token,
-        refresh_token,
+        //access_token,
+        //refresh_token,
       },
       token,
     });
