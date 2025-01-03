@@ -166,6 +166,7 @@ export const getPlaylistTracks = async (req, res) => {
       },
       externalUrl: item.track.external_urls.spotify,
       preview_url: item.track.preview_url,
+      duration_ms: item.track.duration_ms,
     }));
 
     const artistGenres = {};
@@ -201,11 +202,11 @@ export const getPlaylistTracks = async (req, res) => {
           },
         },
         popularity: track.popularity,
-        genre: combinedGenres, 
+        genre: combinedGenres,
         release_date: track.album.release_date,
         duration_ms: track.duration_ms,
         external_url: track.external_urls.spotify,
-        preview_url: track.preview_url, 
+        preview_url: track.preview_url,
         images: track.album.images,
       });
 
@@ -217,7 +218,7 @@ export const getPlaylistTracks = async (req, res) => {
           metadata: {
             externalUrl: artist.external_urls.spotify,
           },
-          genre: artistGenres[artist.id], 
+          genre: artistGenres[artist.id],
           followers: null,
         });
       }
