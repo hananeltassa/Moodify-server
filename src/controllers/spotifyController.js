@@ -78,7 +78,7 @@ export const spotifyCallback = async (req, res) => {
         name: existingUser.name,
         email: existingUser.email,
         profilePic: existingUser.profile_picture,
-        //access_token,
+        access_token,
         //refresh_token,
       },
       token,
@@ -150,7 +150,7 @@ export const getPlaylistTracks = async (req, res) => {
     const { playlistId } = req.params;
     const { spotifyToken } = req;
 
-    const { data } = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+    const { data } = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?market=US`, {
       headers: { Authorization: `Bearer ${spotifyToken}` },
     });
 
@@ -165,6 +165,7 @@ export const getPlaylistTracks = async (req, res) => {
         total_tracks: item.track.album.total_tracks,
       },
       externalUrl: item.track.external_urls.spotify,
+      preview_url: item.track.preview_url,
     }));
 
     const artistGenres = {};
@@ -204,6 +205,7 @@ export const getPlaylistTracks = async (req, res) => {
         release_date: track.album.release_date,
         duration_ms: track.duration_ms,
         external_url: track.external_urls.spotify,
+        preview_url: track.preview_url, 
         images: track.album.images,
       });
 
@@ -350,13 +352,18 @@ export const searchSpotify = async (req, res) => {
           genres: item.genres,
           followers: item.followers?.total,
           externalUrl: item.external_urls?.spotify || null,
+          images: item.images || [],
         })),
       tracks: data.tracks?.items
-        ?.filter((item) => item?.name)
+        ?.filter((item) => item?.name ) //&& item.preview_url
         .map((item) => ({
           name: item.name,
           artists: item.artists?.map((artist) => artist.name) || [],
-          album: item.album?.name || "Unknown Album",
+          album: {
+            name: item.album?.name || "Unknown Album",
+            images: item.album?.images || [], 
+          },
+          preview_url: item.preview_url,
           externalUrl: item.external_urls?.spotify || null,
         })),
       albums: data.albums?.items
@@ -367,6 +374,7 @@ export const searchSpotify = async (req, res) => {
           totalTracks: item.total_tracks || 0,
           releaseDate: item.release_date || "Unknown Date",
           externalUrl: item.external_urls?.spotify || null,
+          images: item.images || [], 
         })),
       playlists: data.playlists?.items
         ?.filter((item) => item?.name) 
@@ -375,6 +383,7 @@ export const searchSpotify = async (req, res) => {
           owner: item.owner?.display_name || "Unknown Owner",
           totalTracks: item.tracks?.total || 0,
           externalUrl: item.external_urls?.spotify || null,
+          images: item.images || [],
         })),
     };
 
