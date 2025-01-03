@@ -342,7 +342,7 @@ export const searchSpotify = async (req, res) => {
 
     const { data } = await axios.get("https://api.spotify.com/v1/search", {
       headers: { Authorization: `Bearer ${spotifyToken}` },
-      params: { q: query, type: type || "track,album,artist,playlist", limit: 10 },
+      params: { q: query, type: type || "track,album,artist,playlist", limit: 15 },
     });
 
     const results = {
@@ -366,6 +366,7 @@ export const searchSpotify = async (req, res) => {
           },
           preview_url: item.preview_url,
           externalUrl: item.external_urls?.spotify || null,
+          duration_ms: item.duration_ms || 0,
         })),
       albums: data.albums?.items
         ?.filter((item) => item?.name) 
@@ -380,6 +381,7 @@ export const searchSpotify = async (req, res) => {
       playlists: data.playlists?.items
         ?.filter((item) => item?.name) 
         .map((item) => ({
+          id: item.id,
           name: item.name,
           owner: item.owner?.display_name || "Unknown Owner",
           totalTracks: item.tracks?.total || 0,
