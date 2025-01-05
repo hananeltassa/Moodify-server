@@ -46,3 +46,33 @@ export const getUserPlaylists = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch playlists." });
   }
 };
+
+// Add a song to a playlist
+export const addSongToPlaylist = async (req, res) => {
+  try {
+    const { playlistId } = req.params;
+    const { source, externalId, metadata } = req.body;
+
+    if (!source || !metadata) {
+      return res.status(400).json({ message: "Source and metadata are required." });
+    }
+
+    const playlistExists = await db.Playlist.findByPk(playlistId);
+    if (!playlistExists) {
+      return res.status(404).json({ message: "Playlist not found." });
+    }
+
+    const newSong = await db.PlaylistSongs.create({
+      playlist_id: playlistId,
+      source,
+      external_id: externalId || null,
+      metadata,
+    });
+
+    res.status(201).json({ message: "Song added to playlist successfully.", song: newSong });
+  } catch (error) {
+    console.error("Error adding song to playlist:", error);
+    res.status(500).json({ error: "Failed to add song to playlist." });
+  }
+};
+
