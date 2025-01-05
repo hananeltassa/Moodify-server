@@ -100,3 +100,31 @@ export const getPlaylistSongs = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch playlist songs." });
   }
 };
+
+// Delete a song from a playlist
+export const deleteSongFromPlaylist = async (req, res) => {
+  try {
+    const { playlistId, songId } = req.params;
+
+    if (!playlistId || !songId) {
+      return res.status(400).json({ message: "Playlist ID and Song ID are required." });
+    }
+
+    const songExists = await db.PlaylistSongs.findOne({
+      where: { playlist_id: playlistId, id: songId },
+    });
+
+    if (!songExists) {
+      return res.status(404).json({ message: "Song not found in the playlist." });
+    }
+
+    await db.PlaylistSongs.destroy({
+      where: { playlist_id: playlistId, id: songId },
+    });
+
+    res.status(200).json({ message: "Song removed from playlist successfully." });
+  } catch (error) {
+    console.error("Error deleting song from playlist:", error);
+    res.status(500).json({ error: "Failed to delete song from playlist." });
+  }
+};
