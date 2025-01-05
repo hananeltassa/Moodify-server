@@ -9,7 +9,8 @@ import AIChallenge from "./aiChallenge.js";
 import SpotifyGlobalData from "./spotifyGlobalData.js";
 import GeneralMusicData from "./generalMusicData.js"; 
 import UserGeneralMusicData from "./userGeneralMusicData.js";
-
+import Playlist from "./playlist.js";
+import PlaylistSongs from "./playlistSongs.js";
 
 dotenv.config();
 
@@ -36,6 +37,8 @@ const db = {
   SpotifyGlobalData: SpotifyGlobalData(sequelize, Sequelize.DataTypes),
   GeneralMusicData: GeneralMusicData(sequelize, Sequelize.DataTypes),
   UserGeneralMusicData: UserGeneralMusicData(sequelize, Sequelize.DataTypes),
+  Playlist: Playlist(sequelize, Sequelize.DataTypes),
+  PlaylistSongs: PlaylistSongs(sequelize, Sequelize.DataTypes),
 };
 
 // Set up associations

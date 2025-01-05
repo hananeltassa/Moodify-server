@@ -61,10 +61,6 @@ export default (sequelize, DataTypes) => {
           notEmpty: true,
         },
       },
-      google_id: {
-        type: DataTypes.STRING,
-        unique: true,
-      },
       spotify_id: {
         type: DataTypes.STRING,
         unique: true,
