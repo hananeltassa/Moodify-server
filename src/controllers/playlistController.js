@@ -3,10 +3,11 @@ import db from "../models/index.js";
 // Create a new playlist
 export const createPlaylist = async (req, res) => {
   try {
-    const { userId, name, isDefault } = req.body;
+    const { name, isDefault } = req.body;
+    const userId = req.user.id;
 
     if (!userId) {
-      return res.status(400).json({ message: "User ID is required." });
+      return res.status(401).json({ message: "Unauthorized: User not authenticated." });
     }
 
     const newPlaylist = await db.Playlist.create({
@@ -25,10 +26,10 @@ export const createPlaylist = async (req, res) => {
 // Get playlists for a user
 export const getUserPlaylists = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user.id;
 
     if (!userId) {
-      return res.status(400).json({ message: "User ID is required." });
+      return res.status(401).json({ message: "Unauthorized: User not authenticated." });
     }
 
     const playlists = await db.Playlist.findAll({
@@ -52,14 +53,17 @@ export const addSongToPlaylist = async (req, res) => {
   try {
     const { playlistId } = req.params;
     const { source, externalId, metadata } = req.body;
+    const userId = req.user.id;
 
     if (!source || !metadata) {
       return res.status(400).json({ message: "Source and metadata are required." });
     }
 
-    const playlistExists = await db.Playlist.findByPk(playlistId);
+    const playlistExists = await db.Playlist.findOne({
+      where: { id: playlistId, user_id: userId },
+    });
     if (!playlistExists) {
-      return res.status(404).json({ message: "Playlist not found." });
+      return res.status(404).json({ message: "Playlist not found or not authorized." });
     }
 
     const newSong = await db.PlaylistSongs.create({
@@ -80,14 +84,13 @@ export const addSongToPlaylist = async (req, res) => {
 export const getPlaylistSongs = async (req, res) => {
   try {
     const { playlistId } = req.params;
+    const userId = req.user.id;
 
-    if (!playlistId) {
-      return res.status(400).json({ message: "Playlist ID is required." });
-    }
-
-    const playlist = await db.Playlist.findByPk(playlistId);
+    const playlist = await db.Playlist.findOne({
+      where: { id: playlistId, user_id: userId },
+    });
     if (!playlist) {
-      return res.status(404).json({ message: "Playlist not found." });
+      return res.status(404).json({ message: "Playlist not found or not authorized." });
     }
 
     const songs = await db.PlaylistSongs.findAll({
@@ -105,9 +108,13 @@ export const getPlaylistSongs = async (req, res) => {
 export const deleteSongFromPlaylist = async (req, res) => {
   try {
     const { playlistId, songId } = req.params;
+    const userId = req.user.id;
 
-    if (!playlistId || !songId) {
-      return res.status(400).json({ message: "Playlist ID and Song ID are required." });
+    const playlist = await db.Playlist.findOne({
+      where: { id: playlistId, user_id: userId },
+    });
+    if (!playlist) {
+      return res.status(404).json({ message: "Playlist not found or not authorized." });
     }
 
     const songExists = await db.PlaylistSongs.findOne({
