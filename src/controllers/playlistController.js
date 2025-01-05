@@ -76,3 +76,27 @@ export const addSongToPlaylist = async (req, res) => {
   }
 };
 
+// Get songs in a playlist
+export const getPlaylistSongs = async (req, res) => {
+  try {
+    const { playlistId } = req.params;
+
+    if (!playlistId) {
+      return res.status(400).json({ message: "Playlist ID is required." });
+    }
+
+    const playlist = await db.Playlist.findByPk(playlistId);
+    if (!playlist) {
+      return res.status(404).json({ message: "Playlist not found." });
+    }
+
+    const songs = await db.PlaylistSongs.findAll({
+      where: { playlist_id: playlistId },
+    });
+
+    res.status(200).json({ songs });
+  } catch (error) {
+    console.error("Error fetching playlist songs:", error);
+    res.status(500).json({ error: "Failed to fetch playlist songs." });
+  }
+};
