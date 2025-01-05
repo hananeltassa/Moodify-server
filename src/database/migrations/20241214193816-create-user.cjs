@@ -31,11 +31,6 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      google_id: {
-        type: Sequelize.STRING,
-        unique: true,
-        allowNull: true,
-      },
       spotify_id: {
         type: Sequelize.STRING,
         unique: true,
