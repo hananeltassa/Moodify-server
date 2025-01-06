@@ -14,6 +14,6 @@ router.post("/", authenticate, createPlaylist);
 router.get("/", authenticate, getUserPlaylists);
 router.post("/:playlistId/songs", authenticate, addSongToPlaylist);
 router.get("/:playlistId/songs", authenticate, getPlaylistSongs);
-router.delete("/:playlistId/songs/:songId", authenticate, deleteSongFromPlaylist);
+router.delete("/:playlistId/songs/:songTitle", authenticate, deleteSongFromPlaylist);
 
 export default router;
