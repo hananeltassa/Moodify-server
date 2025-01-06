@@ -24,11 +24,11 @@ module.exports = {
         allowNull: false,
       },
       external_id: {
-        type: Sequelize.STRING, // Unique song ID from the external source (Spotify/Jamendo)
+        type: Sequelize.STRING,
         allowNull: true,
       },
       metadata: {
-        type: Sequelize.JSONB, // Store all song metadata (e.g., title, artist, album, duration)
+        type: Sequelize.JSONB,
         allowNull: true,
       },
       created_at: {
