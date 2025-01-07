@@ -37,6 +37,16 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      time_of_day: {
+        type: DataTypes.ENUM('morning', 'afternoon', 'night'),
+        allowNull: false,
+        defaultValue: 'morning',
+      },
+      is_daily: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
     },
     {
       sequelize,
