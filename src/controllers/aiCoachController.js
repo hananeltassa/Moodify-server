@@ -30,7 +30,7 @@ export const createChallenge = async (req, res) => {
       ],
       max_tokens: 150,
     });
-
+  
     const challengeData = JSON.parse(response.choices[0].message.content.trim());
 
     if (
@@ -43,7 +43,7 @@ export const createChallenge = async (req, res) => {
     }
 
     const challenge = await db.Challenge.create({
-      userId,
+      user_id: userId,
       text: challengeData,
       type: 'AI-generated',
       status: 'pending',
@@ -60,3 +60,45 @@ export const createChallenge = async (req, res) => {
     res.status(500).json({ error: 'Failed to generate challenge' });
   }
 };
+
+export const updateChallengeStatus = async (req, res) => {
+  const { id } = req.params; 
+  const { status } = req.body;
+
+  const userId = req.user.id;
+
+  if (!status || !['pending', 'completed', 'rejected'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid or missing status. Valid statuses: pending, completed, rejected.' });
+  }
+
+  try {
+    const challenge = await db.Challenge.findByPk(id);
+
+    if (!challenge) {
+      return res.status(404).json({ error: 'Challenge not found' });
+    }
+
+    if (challenge.user_id !== userId) {
+      return res.status(403).json({ error: 'You do not have permission to update this challenge.' });
+    }
+
+    challenge.status = status;
+
+    if (status === 'completed') {
+      challenge.completed_at = new Date();
+    } else {
+      challenge.completed_at = null;
+    }
+
+    await challenge.save();
+
+    res.status(200).json({
+      message: 'Challenge status updated successfully',
+      challenge,
+    });
+  } catch (error) {
+    console.error('Error updating challenge status:', error.message || error);
+    res.status(500).json({ error: 'Failed to update challenge status' });
+  }
+};
+
