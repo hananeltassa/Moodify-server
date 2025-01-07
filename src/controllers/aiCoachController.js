@@ -118,3 +118,27 @@ export const getChallenges = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch challenges' });
   }
 };
+
+
+export const deleteChallenge = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const challenge = await db.Challenge.findByPk(id);
+
+    if (!challenge) {
+      return res.status(404).json({ error: 'Challenge not found' });
+    }
+
+    if (challenge.user_id !== userId) {
+      return res.status(403).json({ error: 'You do not have permission to delete this challenge.' });
+    }
+
+    await challenge.destroy();
+    res.status(200).json({ message: 'Challenge deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting challenge:', error.message || error);
+    res.status(500).json({ error: 'Failed to delete challenge' });
+  }
+};
