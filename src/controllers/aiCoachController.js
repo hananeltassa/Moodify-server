@@ -6,10 +6,12 @@ const openai = new OpenAI({
 });
 
 export const createChallenge = async (req, res) => {
-  const { user_id, mood, time_of_day } = req.body;
+  const { mood, time_of_day } = req.body;
 
-  if (!user_id || !mood || !time_of_day) {
-    return res.status(400).json({ error: 'user_id, mood, and time_of_day are required' });
+  const userId = req.user.id;
+
+  if (!userId || !mood || !time_of_day) {
+    return res.status(400).json({ error: 'Missing required fields: mood, time_of_day, or user authentication.' });
   }
 
   try {
@@ -41,7 +43,7 @@ export const createChallenge = async (req, res) => {
     }
 
     const challenge = await db.Challenge.create({
-      user_id,
+      userId,
       text: challengeData,
       type: 'AI-generated',
       status: 'pending',
