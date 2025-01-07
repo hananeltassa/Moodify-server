@@ -49,8 +49,18 @@ export const registerUser = async (req, res) => {
       gender: gender || null,
     });
 
+    const token = jwt.sign(
+      {
+        id: newUser.id,
+        email: newUser.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     res.status(201).json({
       message: "User registered successfully.",
+      token,
       user: {
         id: newUser.id,
         name: newUser.name,
