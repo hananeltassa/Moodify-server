@@ -142,3 +142,66 @@ export const deleteChallenge = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete challenge' });
   }
 };
+
+export const generateDailyChallenges = async (req, res) => {
+  const userId = req.user.id;
+
+  const timesOfDay = ['morning', 'afternoon', 'night'];
+  const mood = 'neutral'; // Example mood; you can extend this logic to fetch the user's current mood.
+
+  try {
+    const challenges = [];
+
+    for (const time_of_day of timesOfDay) {
+      const prompt = `Generate a ${time_of_day} challenge for someone feeling ${mood}. Return the response in the following JSON format: { "title": "...", "description": "...", "hashtags": [...] }`;
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 150,
+      });
+
+      const challengeData = JSON.parse(response.choices[0].message.content.trim());
+
+      const challenge = await db.Challenge.create({
+        user_id: userId,
+        text: challengeData,
+        type: 'AI-generated',
+        status: 'pending',
+        time_of_day,
+        is_daily: true,
+      });
+
+      challenges.push(challenge);
+    }
+
+    res.status(201).json({
+      message: 'Daily challenges generated successfully',
+      challenges,
+    });
+  } catch (error) {
+    console.error('Error generating daily challenges:', error.message || error);
+    res.status(500).json({ error: 'Failed to generate daily challenges' });
+  }
+};
+
+
+export const getUserStats = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const totalChallenges = await db.Challenge.count({ where: { user_id: userId } });
+    const completedChallenges = await db.Challenge.count({ where: { user_id: userId, status: 'completed' } });
+
+    const stats = {
+      totalChallenges,
+      completedChallenges,
+      completionRate: totalChallenges > 0 ? (completedChallenges / totalChallenges) * 100 : 0,
+    };
+
+    res.status(200).json({ stats });
+  } catch (error) {
+    console.error('Error fetching user stats:', error.message || error);
+    res.status(500).json({ error: 'Failed to fetch user stats' });
+  }
+};
