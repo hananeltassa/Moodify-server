@@ -8,6 +8,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import spotifyRoutes from "./routes/spotifyRoutes.js";
 import JamendoRoutes from "./routes/jamendoRoutes.js";
 import playlistRoutes from "./routes/playlistRoutes.js";
+import aiCoachRoutes from './routes/aiCoachRoutes.js';
 
 dotenv.config();
 
@@ -22,6 +23,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/users", spotifyRoutes)
 app.use("/api/music", JamendoRoutes);
 app.use("/api/playlists", playlistRoutes);
+app.use('/api/ai-coach', aiCoachRoutes);
+
 
 const startServer = async () => {
     try {
