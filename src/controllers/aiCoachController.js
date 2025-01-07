@@ -7,7 +7,6 @@ const openai = new OpenAI({
 
 export const createChallenge = async (req, res) => {
   const { mood, time_of_day } = req.body;
-
   const userId = req.user.id;
 
   if (!userId || !mood || !time_of_day) {
@@ -15,31 +14,55 @@ export const createChallenge = async (req, res) => {
   }
 
   try {
-    const prompt = `Generate a ${time_of_day} challenge for someone feeling ${mood} to improve their mental health.
+    // Fetch existing challenges for the user and time_of_day
+    const existingChallenges = await db.Challenge.findAll({
+      where: {
+        user_id: userId,
+        time_of_day,
+      },
+      attributes: ['text'], // Fetch only the text field
+    });
+
+    const existingChallengeTexts = existingChallenges.map((challenge) => challenge.text.title.toLowerCase());
+
+    // Generate prompt with context to avoid duplicates
+    const prompt = `Generate a unique ${time_of_day} challenge for someone feeling ${mood} to improve their mental health.
+      Do not repeat the following challenges: ${existingChallengeTexts.join(', ')}.
       Return the response in the following JSON format:
       {
         "title": "[A short title]",
         "description": "[A concise description, under 20 words]",
         "hashtags": ["#hashtag1", "#hashtag2", "#hashtag3"]
       }`;
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        { role: 'system', content: 'You are a helpful assistant.' },
-        { role: 'user', content: prompt },
-      ],
-      max_tokens: 150,
-    });
-  
-    const challengeData = JSON.parse(response.choices[0].message.content.trim());
 
-    if (
-      !challengeData.title ||
-      !challengeData.description ||
-      !challengeData.hashtags ||
-      !Array.isArray(challengeData.hashtags)
-    ) {
-      throw new Error('Invalid response format from OpenAI');
+    let challengeData;
+    let retries = 3;
+
+    do {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 150,
+      });
+
+      challengeData = JSON.parse(response.choices[0].message.content.trim());
+
+      if (
+        challengeData &&
+        challengeData.title &&
+        !existingChallengeTexts.includes(challengeData.title.toLowerCase())
+      ) {
+        break;
+      }
+
+      retries -= 1;
+    } while (retries > 0);
+
+    if (!challengeData || retries === 0) {
+      throw new Error('Failed to generate a unique challenge after multiple attempts');
     }
 
     const challenge = await db.Challenge.create({
@@ -60,6 +83,7 @@ export const createChallenge = async (req, res) => {
     res.status(500).json({ error: 'Failed to generate challenge' });
   }
 };
+
 
 export const updateChallengeStatus = async (req, res) => {
   const { id } = req.params; 

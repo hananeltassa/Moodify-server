@@ -4,7 +4,6 @@ import {
   createChallenge,
   updateChallengeStatus,
   getChallenges,
-  getChallengeById,
   deleteChallenge,
   generateDailyChallenges,
   getUserStats,
@@ -15,7 +14,6 @@ const router = express.Router();
 router.post('/create-challenge', authenticate, createChallenge);
 router.put('/challenges/:id/status', authenticate, updateChallengeStatus);
 router.get('/challenges', authenticate, getChallenges);
-router.get('/challenges/:id', authenticate, getChallengeById);
 router.delete('/challenges/:id', authenticate, deleteChallenge);
 router.post('/challenges/daily', authenticate, generateDailyChallenges);
 router.get('/challenges/stats', authenticate, getUserStats);
