@@ -21,7 +21,7 @@ export default (sequelize, DataTypes) => {
         references: { model: 'Users', key: 'id' },
       },
       text: {
-        type: DataTypes.TEXT,
+        type: DataTypes.JSONB,
         allowNull: false,
       },
       type: {

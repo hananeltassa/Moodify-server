@@ -20,7 +20,7 @@ module.exports = {
         onUpdate: 'CASCADE',
       },
       text: {
-        type: Sequelize.TEXT,
+        type: Sequelize.JSONB,
         allowNull: false,
       },
       type: {
@@ -31,6 +31,16 @@ module.exports = {
         type: Sequelize.ENUM('pending', 'completed', 'rejected'),
         allowNull: false,
         defaultValue: 'pending',
+      },
+      time_of_day: {
+        type: Sequelize.ENUM('morning', 'afternoon', 'night'),
+        allowNull: false,
+        defaultValue: 'morning',
+      },
+      is_daily: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
       completed_at: {
         type: Sequelize.DATE,
@@ -51,5 +61,8 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('Challenges');
+
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Challenges_status";');
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Challenges_time_of_day";');
   },
 };
