@@ -102,3 +102,19 @@ export const updateChallengeStatus = async (req, res) => {
   }
 };
 
+export const getChallenges = async (req, res) => {
+  const userId = req.user.id;
+  const { status, time_of_day } = req.query;
+
+  try {
+    const where = { user_id: userId };
+    if (status) where.status = status;
+    if (time_of_day) where.time_of_day = time_of_day;
+
+    const challenges = await db.Challenge.findAll({ where });
+    res.status(200).json({ challenges });
+  } catch (error) {
+    console.error('Error fetching challenges:', error.message || error);
+    res.status(500).json({ error: 'Failed to fetch challenges' });
+  }
+};
