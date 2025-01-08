@@ -125,12 +125,25 @@ export const getSystemAnalytics = async (req, res) => {
 
     const totalChallenges = await db.Challenge.count();
     const completedChallenges = await db.Challenge.count({ where: {status: "completed"}});
+    const pendingChallenges = await db.Challenge.count({ where: {status: "pending"}});
+    const rejectedChallenges = await db.Challenge.count({ where: {status: "rejected"}});
+
+
+    // Gender Counts
+    const maleUsers = await db.User.count({ where: { gender: "male" } });
+    const femaleUsers = await db.User.count({ where: { gender: "female" } });
+    const preferNotToSayUsers = await db.User.count({ where: { gender: "prefer not to say" } });
 
     const analytics = {
       users: {
-        total : totalUsers,
+        total: totalUsers,
         banned: bannedUsers,
         spotify_connected: spotifyUsers,
+        gender: {
+          male: maleUsers,
+          female: femaleUsers,
+          prefer_not_to_say: preferNotToSayUsers,
+        },
       },
       mood_detections:{
         total: totalMoodDetections,
@@ -138,6 +151,8 @@ export const getSystemAnalytics = async (req, res) => {
       challenges:{
         total: totalChallenges,
         completed: completedChallenges,
+        pending: pendingChallenges,
+        rejected: rejectedChallenges,
       },
     };
 
