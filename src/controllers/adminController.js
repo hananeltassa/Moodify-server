@@ -58,6 +58,10 @@ export const updateUserRole = async (req, res) => {
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+
+      if (user.email === "admin@moodify.com") {
+        return res.status(403).json({ error: "This user's role cannot be modified." });
+      }
   
       user.role = role;
       await user.save();
@@ -76,6 +80,10 @@ export const toggleUserBan = async (req, res) => {
       const user = await db.User.findByPk(id);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.email === "admin@moodify.com") {
+        return res.status(403).json({ error: "This user cannot be banned." });
       }
   
       user.is_banned = !user.is_banned;
