@@ -74,29 +74,29 @@ export const updateUserRole = async (req, res) => {
 };
   
 export const toggleUserBan = async (req, res) => {
-    try {
-      const { id } = req.params;
-  
-      const user = await db.User.findByPk(id);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
+  try {
+    const { id } = req.params;
 
-      if (user.email === "admin@moodify.com") {
-        return res.status(403).json({ error: "This user cannot be banned." });
-      }
-  
-      user.is_banned = !user.is_banned;
-      await user.save();
-  
-      res.status(200).json({
-        message: `User has been ${user.is_banned ? "banned" : "unbanned"} successfully`,
-        user,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Error updating user ban status" });
+    const user = await db.User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
+
+    if (user.email === "admin@moodify.com") {
+      return res.status(403).json({ error: "This user cannot be banned." });
+    }
+
+    user.is_banned = !user.is_banned;
+    await user.save();
+
+    return res.status(200).json({
+      message: `User has been ${user.is_banned ? "banned" : "unbanned"} successfully`,
+      user,
+    });
+  } catch (error) {
+    console.error("Error in toggleUserBan:", error);
+    return res.status(500).json({ error: "Error updating user ban status" });
+  }
 };
   
 export const getBannedUsers = async (req, res) => {
