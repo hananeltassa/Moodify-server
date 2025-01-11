@@ -1,6 +1,6 @@
 import db from "../models/index.js";
 import { Parser } from "json2csv";
-
+import { Op, Sequelize } from "sequelize";
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -196,3 +196,37 @@ export const exportUsers = async (req, res) => {
   }
 };
 
+
+export const getUserGrowthPerDay = async (req, res) => {
+  try {
+    const { startDate, endDate, all } = req.query;
+
+    // Define where clause based on query parameters
+    const whereClause = all
+      ? {}
+      : {
+          created_at: {
+            [Sequelize.Op.between]: [
+              startDate || new Date(new Date() - 30 * 24 * 60 * 60 * 1000),
+              endDate || new Date(),
+            ],
+          },
+        };
+
+    const userGrowth = await db.User.findAll({
+      attributes: [
+        [Sequelize.fn("DATE", Sequelize.col("created_at")), "date"],
+        [Sequelize.fn("COUNT", Sequelize.col("id")), "user_count"],
+      ],
+      where: whereClause,
+      group: [Sequelize.fn("DATE", Sequelize.col("created_at"))], 
+      order: [[Sequelize.fn("DATE", Sequelize.col("created_at")), "ASC"]],
+      raw: true,
+    });
+
+    res.status(200).json({ userGrowth });
+  } catch (error) {
+    console.error("Error fetching user growth data:", error);
+    res.status(500).json({ error: "Error retrieving user growth data." });
+  }
+};

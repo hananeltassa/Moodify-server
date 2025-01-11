@@ -4,7 +4,7 @@ import { checkRole } from '../middlewares/roleMiddleware.js';
 import { 
     getAllUsers, getUserById, deleteUser, updateUserRole, toggleUserBan, getBannedUsers, 
     getSystemAnalytics,
-    exportUsers ,
+    exportUsers ,getUserGrowthPerDay,
 }  from '../controllers/adminController.js';
 
 const router = express.Router();
@@ -19,6 +19,7 @@ router.put('/users/:id/ban', toggleUserBan);
 router.get('/banned-users', getBannedUsers);
 
 router.get("/analytics", getSystemAnalytics);
+router.get("/user-growth", getUserGrowthPerDay);
 router.get("/export-users", exportUsers); //?format=csv
 
 export default router;
