@@ -114,68 +114,54 @@ export const getBannedUsers = async (req, res) => {
 };
 
 export const getSystemAnalytics = async (req, res) => {
-  try {
+  try{
     const totalUsers = await db.User.count();
-    const bannedUsers = await db.User.count({ where: { is_banned: true } });
-    const spotifyUsers = await db.User.count({ where: { spotify_id: { [db.Sequelize.Op.ne]: null } } });
+    const bannedUsers = await db.User.count({ where: { is_banned: true }});
+    const spotifyUsers = await db.User.count({ where : {spotify_id: { [db.Sequelize.Op.ne]: null }}});
+    
+    //console.log("Loaded Models:", Object.keys(db));
 
     const totalMoodDetections = await db.MoodDetectionInput.count();
+
     const totalChallenges = await db.Challenge.count();
-    const completedChallenges = await db.Challenge.count({ where: { status: "completed" } });
+    const completedChallenges = await db.Challenge.count({ where: {status: "completed"}});
+    const pendingChallenges = await db.Challenge.count({ where: {status: "pending"}});
+    const rejectedChallenges = await db.Challenge.count({ where: {status: "rejected"}});
+
 
     // Gender Counts
     const maleUsers = await db.User.count({ where: { gender: "male" } });
     const femaleUsers = await db.User.count({ where: { gender: "female" } });
     const preferNotToSayUsers = await db.User.count({ where: { gender: "prefer not to say" } });
 
-    // Previous Data
-    const previousUsers = 2;
-    const previousBannedUsers = 0;
-    const previousSpotifyUsers = 0;
-    const previousChallenges = 2;
-    const previousCompletedChallenges = 7;
-    const previousMoodDetections = 0;
-    const previousMaleUsers = 1;
-    const previousFemaleUsers = 1;
-    const previousPreferNotToSayUsers = 0;
-
     const analytics = {
       users: {
         total: totalUsers,
-        previous_total: previousUsers,
         banned: bannedUsers,
-        previous_banned: previousBannedUsers,
         spotify_connected: spotifyUsers,
-        previous_spotify_connected: previousSpotifyUsers,
         gender: {
           male: maleUsers,
-          previous_male: previousMaleUsers,
           female: femaleUsers,
-          previous_female: previousFemaleUsers,
           prefer_not_to_say: preferNotToSayUsers,
-          previous_prefer_not_to_say: previousPreferNotToSayUsers,
         },
       },
-      mood_detections: {
+      mood_detections:{
         total: totalMoodDetections,
-        previous_total: previousMoodDetections,
       },
-      challenges: {
+      challenges:{
         total: totalChallenges,
-        previous_total: previousChallenges,
         completed: completedChallenges,
-        previous_completed: previousCompletedChallenges,
+        pending: pendingChallenges,
+        rejected: rejectedChallenges,
       },
     };
 
-    res.status(200).json({ analytics });
-  } catch (error) {
+    res.status(200).json({ analytics});                                             
+  } catch (error){
     console.error("Error fetching system analytics:", error.message);
     res.status(500).json({ error: "Error retrieving system analytics." });
   }
 };
-
-
 
 export const exportUsers = async (req, res) => {
   try{
