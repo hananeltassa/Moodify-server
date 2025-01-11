@@ -94,6 +94,10 @@ export const loginUser = async (req, res) => {
       return res.status(404).json({ error: "User not found." });
     }
 
+    if (user.is_banned) {
+      return res.status(403).json({ error: "Your account has been banned. Please contact support." });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Invalid credentials." });
@@ -119,6 +123,7 @@ export const loginUser = async (req, res) => {
         role: user.role,
         birthday: user.birthday,
         gender: user.gender,
+        profilePic: user.profile_picture, 
       },
     });
   } catch (error) {
@@ -178,6 +183,7 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+
 export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -187,7 +193,6 @@ export const changePassword = async (req, res) => {
     }
 
     const userId = req.user.id;
-
     const user = await db.User.findByPk(userId);
 
     if (!user) {
@@ -199,8 +204,18 @@ export const changePassword = async (req, res) => {
       return res.status(401).json({ error: "Current password is incorrect." });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (await bcrypt.compare(newPassword, user.password)) {
+      return res.status(400).json({ error: "New password cannot be the same as the current password." });
+    }
 
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        error: "Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
 
