@@ -123,12 +123,21 @@ export const getSystemAnalytics = async (req, res) => {
     const totalChallenges = await db.Challenge.count();
     const completedChallenges = await db.Challenge.count({ where: { status: "completed" } });
 
+    // Gender Counts
+    const maleUsers = await db.User.count({ where: { gender: "male" } });
+    const femaleUsers = await db.User.count({ where: { gender: "female" } });
+    const preferNotToSayUsers = await db.User.count({ where: { gender: "prefer not to say" } });
+
+    // Previous Data
     const previousUsers = 2;
     const previousBannedUsers = 0;
     const previousSpotifyUsers = 0;
     const previousChallenges = 2;
     const previousCompletedChallenges = 7;
     const previousMoodDetections = 0;
+    const previousMaleUsers = 1;
+    const previousFemaleUsers = 1;
+    const previousPreferNotToSayUsers = 0;
 
     const analytics = {
       users: {
@@ -138,6 +147,14 @@ export const getSystemAnalytics = async (req, res) => {
         previous_banned: previousBannedUsers,
         spotify_connected: spotifyUsers,
         previous_spotify_connected: previousSpotifyUsers,
+        gender: {
+          male: maleUsers,
+          previous_male: previousMaleUsers,
+          female: femaleUsers,
+          previous_female: previousFemaleUsers,
+          prefer_not_to_say: preferNotToSayUsers,
+          previous_prefer_not_to_say: previousPreferNotToSayUsers,
+        },
       },
       mood_detections: {
         total: totalMoodDetections,
