@@ -1,5 +1,6 @@
 import axios from "axios";
 import db from "../models/index.js";
+import path from "path";
 
 export const textDetectedMood = async (req, res) => {
   const { text } = req.body;
@@ -46,3 +47,26 @@ export const textDetectedMood = async (req, res) => {
   }
 };
 
+
+export const handleAudioUpload = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  try {
+    const filePath = path.resolve(req.file.path);
+    const fileName = req.file.filename;
+
+    console.log("Uploaded file details:", req.file);
+
+    return res.status(200).json({
+      success: true,
+      message: "File uploaded successfully",
+      fileName,
+      filePath,
+    });
+  } catch (error) {
+    console.error("Error handling audio upload:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
