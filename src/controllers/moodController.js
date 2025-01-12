@@ -1,10 +1,16 @@
 import axios from "axios";
+import db from "../models/index.js";
 
 export const textDetectedMood = async (req, res) => {
   const { text } = req.body;
+  const userId = req.user.id;
 
   if (!text) {
     return res.status(400).json({ error: 'Text input is required' });
+  }
+
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized: User not authenticated." });
   }
 
   try {
@@ -12,7 +18,21 @@ export const textDetectedMood = async (req, res) => {
       input_data: text,
     });
 
-    return res.status(200).json(response.data);
+    const { mood, confidence } = response.data;
+
+    const MoodDetection = await db.MoodDetectionInput.create({
+      user_id: userId,
+      input_type: 'text',
+      input_data: text,
+      detected_mood: mood,
+      confidence,
+    });
+
+    return res.status(200).json({
+      success: true,
+      MoodDetection,
+    });
+
   } catch (error) {
     console.error('Error calling Django API:', error.message);
 

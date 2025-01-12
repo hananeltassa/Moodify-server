@@ -41,6 +41,10 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING(50),
         allowNull: false,
       },
+      confidence: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },      
     },
     {
       sequelize,
