@@ -1,6 +1,8 @@
 import axios from "axios";
 import db from "../models/index.js";
 import path from "path";
+import FormData from "form-data";
+import fs from "fs";
 
 export const textDetectedMood = async (req, res) => {
   const { text } = req.body;
@@ -48,7 +50,7 @@ export const textDetectedMood = async (req, res) => {
 };
 
 
-export const handleAudioUpload = async (req, res) => {
+export const uploadAudio = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
@@ -59,14 +61,37 @@ export const handleAudioUpload = async (req, res) => {
 
     console.log("Uploaded file details:", req.file);
 
+    // Prepare form data for Django API
+    const formData = new FormData();
+    formData.append("audio", fs.createReadStream(filePath), {
+      filename: fileName,
+      contentType: req.file.mimetype,
+    });
+
+    // Forward the audio file to the Django API
+    const response = await axios.post(
+      `${process.env.DJANGO_API_BASE_URL}detect-voice-mood/`,
+      formData,
+      {
+        headers: formData.getHeaders(),
+      }
+    );
+
+    const { transcription, mood } = response.data;
+
+    console.log("Transcription from Django API:", transcription);
+
     return res.status(200).json({
       success: true,
-      message: "File uploaded successfully",
-      fileName,
-      filePath,
+      //transcription,
+      mood: mood.mood,
+      confidence: mood.confidence,
     });
   } catch (error) {
-    console.error("Error handling audio upload:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("Error forwarding audio to Django:", error.message);
+
+    return res.status(500).json({
+      error: error.response?.data || "Internal server error",
+    });
   }
 };
