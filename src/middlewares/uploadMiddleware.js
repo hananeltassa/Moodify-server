@@ -5,7 +5,7 @@ import fs from "fs";
 // Set up storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(process.cwd(), "uploads")
+    const uploadPath = path.join(process.cwd(), "uploads", "audio");
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -29,4 +29,5 @@ const fileFilter = (req, file, cb) => {
 // Multer instance with the storage and file filter
 const upload = multer({ storage, fileFilter });
 
+// Export middleware
 export const uploadMiddleware = upload.single("audio");
