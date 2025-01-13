@@ -69,8 +69,7 @@ export const uploadAudio = async (req, res) => {
     });
 
     // Forward the audio file to the Django API
-    const response = await axios.post(
-      `${process.env.DJANGO_API_BASE_URL}detect-voice-mood/`,
+    const response = await axios.post(`${process.env.DJANGO_API_BASE_URL}detect-voice-mood/`,
       formData,
       {
         headers: formData.getHeaders(),
@@ -89,6 +88,48 @@ export const uploadAudio = async (req, res) => {
     });
   } catch (error) {
     console.error("Error forwarding audio to Django:", error.message);
+
+    return res.status(500).json({
+      error: error.response?.data || "Internal server error",
+    });
+  }
+};
+
+export const uploadImage = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No image uploaded" });
+  }
+
+  try {
+    const filePath = path.resolve(req.file.path);
+    const fileName = req.file.filename;
+
+    console.log("Uploaded image details:", req.file);
+
+    // Prepare form data for Django API
+    const formData = new FormData();
+    formData.append("image", fs.createReadStream(filePath), {
+      filename: fileName,
+      contentType: req.file.mimetype,
+    });
+
+    // Send the image to the Django backend
+    const response = await axios.post(`${process.env.DJANGO_API_BASE_URL}detect-image-mood/`,
+      formData,
+      {
+        headers: formData.getHeaders(),
+      }
+    );
+
+    const { mood, confidence } = response.data;
+
+    return res.status(200).json({
+      success: true,
+      mood,
+      confidence,
+    });
+  } catch (error) {
+    console.error("Error forwarding image to Django:", error.message);
 
     return res.status(500).json({
       error: error.response?.data || "Internal server error",
