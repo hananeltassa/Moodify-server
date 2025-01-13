@@ -9,7 +9,7 @@ export const textDetectedMood = async (req, res) => {
   const userId = req.user.id;
 
   if (!text) {
-    return res.status(400).json({ error: 'Text input is required' });
+    return res.status(400).json({ error: "Text input is required" });
   }
 
   if (!userId) {
@@ -27,7 +27,7 @@ export const textDetectedMood = async (req, res) => {
 
     const MoodDetection = await db.MoodDetectionInput.create({
       user_id: userId,
-      input_type: 'text',
+      input_type: "text",
       input_data: text,
       detected_mood: mood,
       confidence,
@@ -37,20 +37,18 @@ export const textDetectedMood = async (req, res) => {
       success: true,
       MoodDetection,
     });
-
   } catch (error) {
-    console.error('Error calling Django API:', error.message);
+    console.error("Error calling Django API:", error.message);
 
     if (error.response) {
       return res.status(error.response.status).json({
-        error: error.response.data || 'Error from Django API',
+        error: error.response.data || "Error from Django API",
       });
     }
 
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 export const uploadAudio = async (req, res) => {
   const userId = req.user.id;
@@ -83,11 +81,18 @@ export const uploadAudio = async (req, res) => {
 
     console.log(response.data);
 
+    // Save the result to the database
+    const MoodDetection = await db.MoodDetectionInput.create({
+      user_id: userId,
+      input_type: "voice",
+      input_data: transcription,
+      detected_mood: mood.mood,
+      confidence: mood.confidence,
+    });
+
     return res.status(200).json({
       success: true,
-      //transcription,
-      mood: mood.mood,
-      confidence: mood.confidence,
+      MoodDetection,
     });
   } catch (error) {
     console.error("Error forwarding audio to Django:", error.message);
@@ -99,6 +104,7 @@ export const uploadAudio = async (req, res) => {
 };
 
 export const uploadImage = async (req, res) => {
+  const userId = req.user.id;
   if (!req.file) {
     return res.status(400).json({ error: "No image uploaded" });
   }
@@ -126,10 +132,18 @@ export const uploadImage = async (req, res) => {
 
     const { mood, confidence } = response.data;
 
+    // Save the result to the database
+    const MoodDetection = await db.MoodDetectionInput.create({
+      user_id: userId,
+      input_type: "face",
+      input_data: fileName,
+      detected_mood: mood,
+      confidence,
+    });
+
     return res.status(200).json({
       success: true,
-      mood,
-      confidence,
+      MoodDetection,
     });
   } catch (error) {
     console.error("Error forwarding image to Django:", error.message);
