@@ -20,7 +20,7 @@ export const createChallenge = async (req, res) => {
         user_id: userId,
         time_of_day,
       },
-      attributes: ['text'], // Fetch only the text field
+      attributes: ['text'],
     });
 
     const existingChallengeTexts = existingChallenges.map((challenge) => challenge.text.title.toLowerCase());

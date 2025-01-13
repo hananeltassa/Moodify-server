@@ -15,8 +15,7 @@ export const spotifyCallback = async (req, res) => {
   }
 
   try {
-    const tokenResponse = await axios.post(
-      'https://accounts.spotify.com/api/token',
+    const tokenResponse = await axios.post('https://accounts.spotify.com/api/token',
       new URLSearchParams({
         grant_type: 'authorization_code',
         code,
@@ -78,6 +77,8 @@ export const spotifyCallback = async (req, res) => {
         name: existingUser.name,
         email: existingUser.email,
         profilePic: existingUser.profile_picture,
+        birthday: existingUser.birthday,
+        gender: existingUser.gender,
         access_token,
         //refresh_token,
       },
