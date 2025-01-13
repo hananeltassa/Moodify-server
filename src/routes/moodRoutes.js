@@ -7,7 +7,7 @@ import { uploadImageMiddleware } from "../middlewares/uploadImageMiddleware.js";
 const router = express.Router();
 
 router.post('/text-mood', authenticate, textDetectedMood);
-router.post("/voice-mood", uploadMiddleware, uploadAudio);
-router.post("/image-mood", uploadImageMiddleware, uploadImage);
+router.post("/voice-mood", authenticate, uploadMiddleware, uploadAudio);
+router.post("/image-mood", authenticate, uploadImageMiddleware, uploadImage);
 
 export default router;

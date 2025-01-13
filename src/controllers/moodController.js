@@ -23,6 +23,8 @@ export const textDetectedMood = async (req, res) => {
 
     const { mood, confidence } = response.data;
 
+    console.log(response.data);
+
     const MoodDetection = await db.MoodDetectionInput.create({
       user_id: userId,
       input_type: 'text',
@@ -51,6 +53,7 @@ export const textDetectedMood = async (req, res) => {
 
 
 export const uploadAudio = async (req, res) => {
+  const userId = req.user.id;
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
@@ -78,7 +81,7 @@ export const uploadAudio = async (req, res) => {
 
     const { transcription, mood } = response.data;
 
-    console.log("Transcription from Django API:", transcription);
+    console.log(response.data);
 
     return res.status(200).json({
       success: true,
