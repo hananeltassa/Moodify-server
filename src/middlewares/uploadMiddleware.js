@@ -29,5 +29,4 @@ const fileFilter = (req, file, cb) => {
 // Multer instance with the storage and file filter
 const upload = multer({ storage, fileFilter });
 
-// Export middleware
 export const uploadMiddleware = upload.single("audio");
