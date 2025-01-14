@@ -4,6 +4,11 @@ import path from "path";
 import FormData from "form-data";
 import fs from "fs";
 import { Op } from 'sequelize';
+import { OpenAI } from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export const textDetectedMood = async (req, res) => {
   const { text } = req.body;
@@ -24,6 +29,23 @@ export const textDetectedMood = async (req, res) => {
 
     const { mood, confidence } = response.data;
 
+    const aiPrompt = `
+      Analyze the text: "${text}" and detected mood: "${mood}".
+      Provide a short 3-4 words, personalized description suitable for a user interface.
+      Ensure the description conveys positivity and matches the context.
+    `;
+
+    const aiResponse = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant generating creative descriptions.' },
+        { role: 'user', content: aiPrompt },
+      ],
+      max_tokens: 100,
+    });
+
+    const aiDescription = aiResponse.choices[0].message.content.trim();
+
     console.log(response.data);
 
     const MoodDetection = await db.MoodDetectionInput.create({
@@ -32,11 +54,13 @@ export const textDetectedMood = async (req, res) => {
       input_data: text,
       detected_mood: mood,
       confidence,
+      //description: aiDescription,
     });
 
     return res.status(200).json({
       success: true,
       MoodDetection,
+      AIdescription: aiDescription,
     });
   } catch (error) {
     console.error("Error calling Django API:", error.message);
