@@ -31,8 +31,15 @@ export const textDetectedMood = async (req, res) => {
 
     const aiPrompt = `
       Analyze the text: "${text}" and detected mood: "${mood}".
-      Provide a short 3-4 words, personalized description suitable for a user interface.
-      Ensure the description conveys positivity and matches the context.
+      Generate a short, unique, and mood-boosting description (3-4 words) suitable for a music playlist or user interface.
+      If the text mentions a specific occasion such as a birthday, wedding, or celebration, create a positive and uplifting description tailored to that occasion.
+      Otherwise, create a description based on the detected mood, focusing on themes of relaxation, positivity, and uplifting vibes. Avoid repeating the text or detected mood directly, and ensure the description promotes well-being and good energy.
+      Examples:
+      - Text: "It's my birthday!" -> Description: Joyful Celebration Tunes
+      - Text: "I'm feeling relaxed." -> Description: Peaceful Relaxation Rhythms
+      - Text: "Studying for exams." -> Description: Focused Tranquil Beats
+      Keep the description concise, directly relevant, and mood-boosting.
+      Ensure the output is raw data, without any additional formatting, context, or quotes.
     `;
 
     const aiResponse = await openai.chat.completions.create({
@@ -104,7 +111,37 @@ export const uploadAudio = async (req, res) => {
 
     const { transcription, mood } = response.data;
 
-    console.log(response.data);
+    console.log("Django Response:", response.data);
+
+    const aiPrompt = `
+      Analyze the transcription: "${transcription}" and detected mood: "${mood.mood}".
+      If the transcription mentions a specific occasion (e.g., birthday, wedding, celebration), generate a unique, uplifting description (3-4 words) with positive vibes for that occasion.
+      Otherwise, create a mood-based playlist description designed to make users feel better, focusing on themes like relaxation, love, romance, and positivity.
+      Match the tone of these examples:
+      - Happy: uplifting feel-good vibes
+      - Sad: soothing comfort tunes
+      - Disgust: serene relaxation sounds
+      - Neutral: peaceful chill beats
+      - Angry: calming mellow rhythms
+      - Fear: gentle tranquil melodies
+      - Surprise: joyful energetic vibes
+      - Love: tender romantic tunes
+      Avoid repeating the examples above. Ensure descriptions are concise, positive, and uniquely tailored to lift the user's mood.
+      Ensure the output is raw data, without any additional formatting, context, or quotes.
+    `;
+  
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: "You are a helpful assistant generating creative descriptions." },
+        { role: "user", content: aiPrompt },
+      ],
+      max_tokens: 100,
+    });
+
+    const aiDescription = aiResponse.choices[0].message.content.trim();
+
+    console.log("AI Description:", aiDescription);
 
     // Save the result to the database
     const MoodDetection = await db.MoodDetectionInput.create({
@@ -118,15 +155,17 @@ export const uploadAudio = async (req, res) => {
     return res.status(200).json({
       success: true,
       MoodDetection,
+      AIdescription: aiDescription,
     });
   } catch (error) {
-    console.error("Error forwarding audio to Django:", error.message);
+    console.error("Error processing audio input:", error.message);
 
     return res.status(500).json({
       error: error.response?.data || "Internal server error",
     });
   }
 };
+
 
 export const uploadImage = async (req, res) => {
   const userId = req.user.id;
@@ -156,6 +195,7 @@ export const uploadImage = async (req, res) => {
     );
 
     const { mood, confidence } = response.data;
+    console.log(response.data);
 
     // Save the result to the database
     const MoodDetection = await db.MoodDetectionInput.create({
