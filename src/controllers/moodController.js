@@ -3,6 +3,7 @@ import db from "../models/index.js";
 import path from "path";
 import FormData from "form-data";
 import fs from "fs";
+import { Op } from 'sequelize';
 
 export const textDetectedMood = async (req, res) => {
   const { text } = req.body;
@@ -151,5 +152,59 @@ export const uploadImage = async (req, res) => {
     return res.status(500).json({
       error: error.response?.data || "Internal server error",
     });
+  }
+};
+
+export const getUserAverageMood = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const moodInputs = await db.MoodDetectionInput.findAll({
+      where: {
+        user_id: userId,
+        createdAt: { [Op.between]: [sevenDaysAgo, today] },
+      },
+    });
+
+    if (!moodInputs || moodInputs.length === 0) {
+      return res.status(404).json({ message: 'No mood inputs found for the user in the last 7 days.' });
+    }
+
+    const dailyMoodMap = {};
+    moodInputs.forEach((input) => {
+      const createdAt = new Date(input.createdAt);
+
+      if (isNaN(createdAt)) {
+        console.warn(`Invalid createdAt value for input ID: ${input.id}`);
+        return; // Skip invalid entries
+      }
+
+      const dateKey = createdAt.toISOString().split('T')[0];
+      if (!dailyMoodMap[dateKey]) {
+        dailyMoodMap[dateKey] = [];
+      }
+      dailyMoodMap[dateKey].push(input.detected_mood);
+    });
+
+    const dailyMoods = Object.entries(dailyMoodMap).map(([date, moods]) => {
+      const moodCounts = moods.reduce((acc, mood) => {
+        acc[mood] = (acc[mood] || 0) + 1;
+        return acc;
+      }, {});
+
+      const mostCommonMood = Object.entries(moodCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
+
+      return { date, most_common_mood: mostCommonMood };
+    });
+
+    dailyMoods.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    res.status(200).json(dailyMoods);
+  } catch (error) {
+    console.error('Error fetching user average mood:', error);
+    res.status(500).json({ message: 'An error occurred while fetching the user average mood.' });
   }
 };
