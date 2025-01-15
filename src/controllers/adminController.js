@@ -230,3 +230,107 @@ export const getUserGrowthPerDay = async (req, res) => {
     res.status(500).json({ error: "Error retrieving user growth data." });
   }
 };
+
+export const getMoodInsightsByDate = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Validate and parse date range
+    const whereClause = {};
+    if (startDate) {
+      whereClause.createdAt = { [db.Sequelize.Op.gte]: new Date(startDate) };
+    }
+    if (endDate) {
+      whereClause.createdAt = {
+        ...whereClause.createdAt,
+        [db.Sequelize.Op.lte]: new Date(endDate),
+      };
+    }
+
+    // Total mood detections by date
+    const detectionsByDate = await db.MoodDetectionInput.findAll({
+      attributes: [
+        [db.Sequelize.fn('DATE', db.Sequelize.col('created_at')), 'date'],
+        [db.Sequelize.fn('COUNT', '*'), 'count'],
+      ],
+      where: whereClause,
+      group: ['date'],
+      order: [[db.Sequelize.literal('date'), 'ASC']],
+    });
+
+    // Detections grouped by mood and date
+    const detectionsByMoodAndDate = await db.MoodDetectionInput.findAll({
+      attributes: [
+        [db.Sequelize.fn('DATE', db.Sequelize.col('created_at')), 'date'],
+        'detected_mood',
+        [db.Sequelize.fn('COUNT', '*'), 'count'],
+      ],
+      where: whereClause,
+      group: ['date', 'detected_mood'],
+      order: [[db.Sequelize.literal('date'), 'ASC']],
+    });
+
+    // Format results for charts
+    const formattedDetectionsByDate = detectionsByDate.map((entry) => ({
+      date: entry.get('date'),
+      count: parseInt(entry.get('count'), 10),
+    }));
+
+    const formattedDetectionsByMoodAndDate = detectionsByMoodAndDate.map((entry) => ({
+      date: entry.get('date'),
+      mood: entry.detected_mood,
+      count: parseInt(entry.get('count'), 10),
+    }));
+
+    const insights = {
+      detectionsByDate: formattedDetectionsByDate,
+      detectionsByMoodAndDate: formattedDetectionsByMoodAndDate,
+    };
+
+    res.status(200).json({ insights });
+  } catch (error) {
+    console.error('Error fetching mood insights by date:', error.message);
+    res.status(500).json({ error: 'Error retrieving mood insights by date.' });
+  }
+};
+
+export const getMoodAndInputTypeStats = async (req, res) => {
+  try {
+    // Get total counts grouped by mood
+    const moodsStats = await db.MoodDetectionInput.findAll({
+      attributes: [
+        'detected_mood',
+        [db.Sequelize.fn('COUNT', db.Sequelize.col('detected_mood')), 'total'],
+      ],
+      group: ['detected_mood'],
+    });
+
+    // Get total counts grouped by input type
+    const inputTypeStats = await db.MoodDetectionInput.findAll({
+      attributes: [
+        'input_type',
+        [db.Sequelize.fn('COUNT', db.Sequelize.col('input_type')), 'total'],
+      ],
+      group: ['input_type'],
+    });
+
+    // Format response
+    const moodCounts = moodsStats.map((item) => ({
+      mood: item.detected_mood,
+      total: parseInt(item.get('total'), 10),
+    }));
+
+    const inputTypeCounts = inputTypeStats.map((item) => ({
+      inputType: item.input_type,
+      total: parseInt(item.get('total'), 10),
+    }));
+
+    res.status(200).json({
+      moodCounts,
+      inputTypeCounts,
+    });
+  } catch (error) {
+    console.error('Error fetching mood and input type stats:', error.message);
+    res.status(500).json({ error: 'Error fetching statistics.' });
+  }
+};

@@ -88,7 +88,7 @@ export const addSongToPlaylist = async (req, res) => {
   
       res.status(500).json({ error: "Failed to add song to playlist." });
     }
-  };
+ };
   
   
 

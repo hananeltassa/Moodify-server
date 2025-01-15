@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticate } from '../middlewares/authMiddleware.js';
-import { textDetectedMood, uploadAudio, uploadImage, getUserAverageMood } from "../controllers/moodController.js";
+import { textDetectedMood, uploadAudio, uploadImage, getUserAverageMood} from "../controllers/moodController.js";
 import { uploadMiddleware } from "../middlewares/uploadMiddleware.js";
 import { uploadImageMiddleware } from "../middlewares/uploadImageMiddleware.js";
 
