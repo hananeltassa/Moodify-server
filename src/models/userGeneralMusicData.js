@@ -10,11 +10,6 @@ export default (sequelize, DataTypes) => {
         onUpdate: "CASCADE",
       });
 
-      UserGeneralMusicData.belongsTo(models.GeneralMusicData, {
-        foreignKey: "music_id",
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
-      });
     }
   }
 

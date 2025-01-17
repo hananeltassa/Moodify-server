@@ -4,10 +4,7 @@ import User from "./user.js";
 import SpotifyUserData from "./spotifyUserData.js";
 import MoodDetectionInput from "./moodDetectionInput.js";
 import Challenge from "./challenge.js";
-import AIMusicSuggestion from "./aiMusicSuggestion.js";
-import AIChallenge from "./aiChallenge.js";
 import SpotifyGlobalData from "./spotifyGlobalData.js";
-import GeneralMusicData from "./generalMusicData.js"; 
 import UserGeneralMusicData from "./userGeneralMusicData.js";
 import Playlist from "./playlist.js";
 import PlaylistSongs from "./playlistSongs.js";
@@ -32,10 +29,7 @@ const db = {
   SpotifyUserData: SpotifyUserData(sequelize, Sequelize.DataTypes),
   MoodDetectionInput: MoodDetectionInput(sequelize, Sequelize.DataTypes),
   Challenge: Challenge(sequelize, Sequelize.DataTypes),
-  AIMusicSuggestion: AIMusicSuggestion(sequelize, Sequelize.DataTypes),
-  AIChallenge: AIChallenge(sequelize, Sequelize.DataTypes),
   SpotifyGlobalData: SpotifyGlobalData(sequelize, Sequelize.DataTypes),
-  GeneralMusicData: GeneralMusicData(sequelize, Sequelize.DataTypes),
   UserGeneralMusicData: UserGeneralMusicData(sequelize, Sequelize.DataTypes),
   Playlist: Playlist(sequelize, Sequelize.DataTypes),
   PlaylistSongs: PlaylistSongs(sequelize, Sequelize.DataTypes),
