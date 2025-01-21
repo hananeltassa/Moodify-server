@@ -1,10 +1,10 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 import User from "./user.js";
-import SpotifyUserData from "./spotifyUserData.js";
-import MoodDetectionInput from "./moodDetectionInput.js";
+import SpotifyUserData from "./spotifyuserdata.js";
+import MoodDetectionInput from "./mooddetectioninput.js";
 import Challenge from "./challenge.js";
-import SpotifyGlobalData from "./spotifyGlobalData.js";
+import SpotifyGlobalData from "./spotifyglobaldata.js";
 import UserGeneralMusicData from "./userGeneralMusicData.js";
 import Playlist from "./playlist.js";
 import PlaylistSongs from "./playlistSongs.js";
