@@ -1,0 +1,39 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    # Step 2: Deploy to EC2
+    - name: Deploy to EC2
+      env:
+        AWS_HOST: ${{ secrets.AWS_HOST }}
+        AWS_USER: ${{ secrets.AWS_USER }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        echo "$SSH_PRIVATE_KEY" > private_key.pem
+        chmod 600 private_key.pem
+
+        mkdir -p ~/.ssh
+
+        ssh-keyscan -H $AWS_HOST >> ~/.ssh/known_hosts
+
+        ssh -i private_key.pem $AWS_USER@$AWS_HOST << 'EOF'
+          set -e # Exit on any error
+          cd /home/ubuntu/Moodify-server
+          git fetch origin main
+          git reset --hard origin/main # Force sync with remote branch
+          pm2 restart all # Restart the application
+        EOF
+
+        rm -f private_key.pem
