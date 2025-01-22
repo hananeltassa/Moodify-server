@@ -35,8 +35,8 @@ jobs:
         ssh -i private_key.pem $AWS_USER@$AWS_HOST << 'EOF'
           set -e # Exit on any error
           cd /home/ubuntu/Moodify-server
-          git pull origin main
-          npm install --production
+          git fetch origin main
+          git reset --hard origin/main
           npm run migrations
           pm2 restart all
         EOF
