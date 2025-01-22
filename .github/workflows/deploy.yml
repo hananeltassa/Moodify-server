@@ -37,7 +37,6 @@ jobs:
           cd /home/ubuntu/Moodify-server
           git fetch origin main
           git reset --hard origin/main
-          npm run migrations
           pm2 restart all
         EOF
 
