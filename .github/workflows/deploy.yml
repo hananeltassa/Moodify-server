@@ -25,7 +25,10 @@ jobs:
         echo "$SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
 
-        # Add the EC2 instance to known hosts
+        # Ensure .ssh directory exists
+        mkdir -p ~/.ssh
+
+        # Add the EC2 instance to known_hosts
         ssh-keyscan -H $AWS_HOST >> ~/.ssh/known_hosts
 
         # SSH into the instance and execute deployment commands
