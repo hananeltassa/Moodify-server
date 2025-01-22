@@ -10,6 +10,7 @@ import JamendoRoutes from "./routes/jamendoRoutes.js";
 import playlistRoutes from "./routes/playlistRoutes.js";
 import aiCoachRoutes from './routes/aiCoachRoutes.js';
 import moodRoutes from './routes/moodRoutes.js';
+import spotifyAuthTestRoutes from "./routes/spotifyAuthTestRoutes.js";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use("/api/music", JamendoRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use('/api/ai-coach', aiCoachRoutes);
 app.use('/api/mood', moodRoutes);
+app.use("/api/test-auth", spotifyAuthTestRoutes);
 
 
 const startServer = async () => {
