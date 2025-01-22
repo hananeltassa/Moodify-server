@@ -32,7 +32,8 @@ jobs:
           set -e # Exit on any error
           cd /home/ubuntu/Moodify-server
           git fetch origin main
-          git reset --hard origin/main # Force sync with remote branch
+          git reset --hard origin/main
+          npx sequelize-cli db:migrate
           pm2 restart all # Restart the application
         EOF
 
